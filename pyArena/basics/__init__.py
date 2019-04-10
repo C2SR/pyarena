@@ -1,1 +1,1 @@
-from dynamical_system import DynamicalSystem
+__all__ = ["dynamical_system"]

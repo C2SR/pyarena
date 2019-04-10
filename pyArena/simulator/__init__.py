@@ -1,1 +1,1 @@
-from simulator import *
+__all__ = ["simulator"]

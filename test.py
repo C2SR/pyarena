@@ -1,8 +1,7 @@
-from pyArena import DynamicalSystem
-from pyArena import unicycle
-from pyArena import PathFollowing
-from pyArena import simulator
-
+from pyArena.basics.dynamical_system import DynamicalSystem
+from pyArena.vehicles import unicycle
+from pyArena.control.path_following import PathFollowing
+from pyArena.simulator import simulator
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,14 +29,13 @@ kwargsController = {'pd': pd, 'pdD': pdD, 'gain': K, 'eps': eps, 'vd': vd}
 controller = PathFollowing(**kwargsController)
 
 kwargsSystem = {'nx':nx, 'nu':nu,\
-                'stateEquation': lambda t,x,u: unicycle(t,x,u),\
+                'stateEquation': lambda t,x,u: unicycle.unicycle(t,x,u),\
                 'initialCondition': x_init, 'controller': controller}
 
 system = DynamicalSystem(**kwargsSystem)
 
 kwargsSimulation = {'system': system, 'simTime': Tsim, 'dt': dt}
 pyA = simulator.pyArena(**kwargsSimulation)
-
 dataLog = pyA.run()
 
 pdVec = pd(np.linspace(0,100,1000))
