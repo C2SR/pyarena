@@ -21,7 +21,7 @@ class TrajectoryTracking(controller.StaticController):
 
     def computeInput(self, t, x):
 
-        p = x[0:1]
+        p = x[0:2]
 
         theta = x[2]
 
