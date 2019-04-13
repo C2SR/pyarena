@@ -1,4 +1,3 @@
-from .basics import *
 from .control import *
-from .simulator import *
+from .core import *
 from .vehicles import *
