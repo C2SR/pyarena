@@ -14,6 +14,7 @@ sys.path.append('..')
 ## Necessary imports
 import pyArena.core as pyacore
 import pyArena.control.trajectorytracking as pyacontrol
+import pyArena.vehicles.underactuatedvehicle as pyavehicle
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -40,13 +41,9 @@ kwargsController = {'pd': pd, 'pdDot': pdDot, 'gain': K, 'eps': eps}
 
 ttController = pyacontrol.TrajectoryTracking(**kwargsController)
 
-## Create the inline controlled dynamic system
-def unicycle(t, x, u):
-    return np.array([u[0]*np.cos(x[2]), u[0]*np.sin(x[2]), u[1]])
+kwargsSystem = {'initialCondition': x_init, 'controller': ttController}
 
-kwargsSystem = {'nx':nx, 'nu':nu, 'inlineStateEquation': lambda t,x,u: unicycle(t,x,u), 'initialCondition': x_init, 'controller': ttController}
-
-system = pyacore.system.InlineControlSystem(**kwargsSystem)
+system = pyavehicle.UnicycleKinematics(**kwargsSystem)
 
 ## Create pyArena simulation object and simulate
 kwargsSimulation = {'system': system, 'simTime': Tsim, 'dt': dt}
