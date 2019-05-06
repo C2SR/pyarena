@@ -29,11 +29,10 @@ x_init = np.array([10.0, 0.0, np.pi/2])
 
 ## Specify desired trajectory
 radius = 30
-a = 0.05
-
-pd = lambda t: radius*np.array([np.cos(a*t), np.sin(a*t)])
 
 # TODO: Learn Symbolic operations in Python
+a = 0.05
+pd = lambda t: radius*np.array([np.cos(a*t), np.sin(a*t)])
 pdDot = lambda t: radius*np.array([-a*np.sin(a*t), a*np.cos(a*t)])
 
 ## Specify the controller
