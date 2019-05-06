@@ -96,5 +96,11 @@ class InlineControlSystem(InlineDynamicSystem):
             raise KeyError("Must specify the controller")
 
         self.controller = kwargs['controller']
+
+        if 'sensor' in kwargs:
+            self.sensor = kwargs['sensor']
+        else:
+            self.sensor = None
+
     # END of __init__()
 ## END of InlineControlSystem()
