@@ -1,6 +1,7 @@
 # TODOC
 import numpy as np
 from ..core import controller
+#from ..algorithms import gaussian_process
 
 ## Create a path following controller class
 class TrajectoryTracking(controller.StaticController):
@@ -19,7 +20,7 @@ class TrajectoryTracking(controller.StaticController):
 
         self.invDelta = np.linalg.pinv(np.array([[1.0, -self.eps[1]], [0.0, self.eps[0]]]))
 
-    def computeInput(self, t, x):
+    def computeInput(self, t, x, *args):
 
         p = x[0:2]
 
@@ -38,3 +39,18 @@ class TrajectoryTracking(controller.StaticController):
         u = self.invDelta@(-self.K@e + u_ff)
 
         return u
+
+
+class TrajectoryTrackingWithGP(TrajectoryTracking):
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+
+        self.GP = kwargs['GaussianProcess']
+
+    def computeInput(self, t, x, *args):
+
+        #self.GP.
+
+        super(TrajectoryTrackingWithGP, self).computeInput(t,x,*args)
