@@ -23,6 +23,9 @@ class GPRegression(GaussianProcess):
         else:
             self.noiseCov = kwargs['measurementNoiseCov']
 
+        self.xTrain = []
+        self.yTrain = []
+
     """
     trainModel(inpTrain, outTrain)
     The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data.
@@ -48,6 +51,38 @@ class GPRegression(GaussianProcess):
             for column in range(row,self.numTrain):
                 Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(inpTrain[:,row],inpTrain[:,column])
 
+        self.priorCovariance = Ktrtr
+
+    """
+    trainModelIterative(inpTrain, outTrain)
+    The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data iteratively.
+    The input and output training data is stored. Training is performed only when the trainingFlag is active
+    Training the GP model implies computation of prior mean and convariance distribution over the regressor function.
+
+    Necessary function arguments:
+    inpTrain - (numDim, 1) numpy array
+    outTrain - 1 float
+    trainingFlag - bool. 0 - do not train (only store new data). 1 - store and train
+    """
+    def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
+        self.numTrain = len(self.yTrain) + 1
+
+        self.yTrain =  np.append(self.yTrain, outTrain)
+
+        self.xTrain = np.append(self.xTrain, inpTrain)
+        self.xTrain = self.xTrain.reshape([self.numTrain, 2])
+   
+        if(trainingFlag==False):
+            return
+
+        # Compute the prior GP covariance matrix
+        Ktrtr = np.zeros([self.numTrain,self.numTrain])
+        self.inpTrain = self.xTrain.T
+        self.outTrain = self.yTrain
+
+        for row in range(0,self.numTrain):
+            for column in range(row,self.numTrain):
+                Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(self.inpTrain[:,row],self.inpTrain[:,column])
         self.priorCovariance = Ktrtr
 
     """
