@@ -24,14 +24,14 @@ kwargsGP = {'kernel': kernel, 'measurementNoiseCov': phi}
 # Get training data
 numTrain = 10
 xTrain, yTrain = sensorEnv.getFullPlotData(xmin = [-5, -5], xmax = [5, 5], numGrid = numTrain)
-
+print(xTrain)
 mGP = GP.GPRegression(**kwargsGP)
 
 mGP.trainGP(xTrain, yTrain)
-
+print(xTrain.shape)
+"""
 # Get testing data
 numTest = 30
-
 xTest, yTest = sensorEnv.getFullPlotData(xmin = [-5, -5], xmax = [5, 5], numGrid = numTest)
 
 # Prediction using GP
@@ -63,3 +63,4 @@ h4 = plt.figure(4)
 err = (ypred - ysense)
 plt.plot(err)
 plt.show()
+"""
