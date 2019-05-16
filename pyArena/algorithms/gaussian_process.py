@@ -62,7 +62,7 @@ class GPRegression(GaussianProcess):
     Necessary function arguments:
     inpTrain - (numDim, 1) numpy array
     outTrain - 1 float
-    trainingFlag - bool. 0 - do not train (only store new data). 1 - store and train
+    trainingFlag - bool. 0: do not train (only store new data). 1: store and train GP
     """
     def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
         self.numTrain = len(self.yTrain) + 1
@@ -72,18 +72,9 @@ class GPRegression(GaussianProcess):
         self.xTrain = np.append(self.xTrain, inpTrain)
         self.xTrain = self.xTrain.reshape([self.numTrain, 2])
    
-        if(trainingFlag==False):
-            return
-
-        # Compute the prior GP covariance matrix
-        Ktrtr = np.zeros([self.numTrain,self.numTrain])
-        self.inpTrain = self.xTrain.T
-        self.outTrain = self.yTrain
-
-        for row in range(0,self.numTrain):
-            for column in range(row,self.numTrain):
-                Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(self.inpTrain[:,row],self.inpTrain[:,column])
-        self.priorCovariance = Ktrtr
+        if(trainingFlag):
+            self.trainGP(self.xTrain.T, self.yTrain)
+        return
 
     """
     Evaluate GP to obtain mean and value at a testing point
