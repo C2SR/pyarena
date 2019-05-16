@@ -23,8 +23,9 @@ class GPRegression(GaussianProcess):
         else:
             self.noiseCov = kwargs['measurementNoiseCov']
 
-        self.xTrain = []
-        self.yTrain = []
+        # Input/output variables for iterative GP
+        self.inpTrain = []
+        self.outTrain = []
 
     """
     trainModel(inpTrain, outTrain)
@@ -65,15 +66,17 @@ class GPRegression(GaussianProcess):
     trainingFlag - bool. 0: do not train (only store new data). 1: store and train GP
     """
     def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
-        self.numTrain = len(self.yTrain) + 1
+        self.numTrain = len(self.outTrain) + 1
+        print(self.numTrain)
         # Input training data
-        self.xTrain = np.append(self.xTrain, inpTrain)
-        self.xTrain = self.xTrain.reshape([self.numTrain, 2])
+        if (self.inpTrain!=[]):
+            self.inpTrain=self.inpTrain.T
+        self.inpTrain = np.append(self.inpTrain, inpTrain).reshape(self.numTrain,2).T
         # Output training data
-        self.yTrain =  np.append(self.yTrain, outTrain)
+        self.outTrain =  np.append(self.outTrain, outTrain)
         
         if(trainingFlag):
-            self.trainGP(self.xTrain.T, self.yTrain)
+            self.trainGP(self.inpTrain, self.outTrain)
         return
 
     """
