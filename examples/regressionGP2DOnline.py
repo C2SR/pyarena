@@ -64,10 +64,10 @@ X0 = xTruth[0].reshape(numTruth,numTruth)
 X1 = xTruth[1].reshape(numTruth,numTruth)
 Y = yTruth.reshape(numTruth,numTruth)
 
-h1 = plt.figure(1)
-ax1 = plt.subplot(1,2,1)
-p = ax1.pcolor(X0, X1, Y, cmap=cm.jet, vmin=-20, vmax=20)
-cb = h1.colorbar(p)
+h = plt.figure("Real world")
+ax = plt.subplot(1,1,1)
+p = ax.pcolor(X0, X1, Y, cmap=cm.jet, vmin=-20, vmax=20)
+cb = h.colorbar(p)
 plt.axis('equal')
 plt.show(0)
 
@@ -75,8 +75,8 @@ plt.show(0)
 dataLog = pyA.run()
 
 ## Plot results
-h1 = plt.figure(1)
-ax2 = plt.subplot(1,2,2)
+h = plt.figure("Trajectory")
+ax = plt.subplot(1,1,1)
 pdVec = pd(dataLog.time).T
 plt.plot(pdVec[:,0], pdVec[:,1], 'k--')
 plt.plot(dataLog.stateTrajectory[:,0], dataLog.stateTrajectory[:,1], 'r')

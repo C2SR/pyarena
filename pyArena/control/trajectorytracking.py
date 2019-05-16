@@ -57,6 +57,7 @@ class TrajectoryTrackingWithGP(TrajectoryTracking):
         self.counter = 0
         self.inpTrain=[]
         self.outTrain=[]
+        self.h = plt.figure("Gaussian Process")
 
     def computeInput(self, t, x, *args):
         # Store input training data
@@ -74,16 +75,17 @@ class TrajectoryTrackingWithGP(TrajectoryTracking):
             # Plot
             num=10
             X0, X1, ypred, var_pred =  self.mGP.predict_grid_value(xmin= [-5,-5], xmax= [5,5], gridSize=num)
-            h = plt.figure(2)
+        
+            plt.figure(self.h.number )
             plt.clf()
             ax1 = plt.subplot(1,2,1)  
             p = ax1.pcolor(X0, X1, ypred.reshape([num,num]), cmap=cm.jet, vmin=-20, vmax=20)
-            cb = h.colorbar(p)
+            cb = self.h.colorbar(p)
             plt.axis('equal')
 
             ax2 = plt.subplot(1,2,2)    
             p = ax2.pcolor(X0, X1, var_pred.reshape([num,num]), cmap=cm.jet, vmin=0, vmax=1)
-            cb = h.colorbar(p)
+            cb = self.h.colorbar(p)
             plt.axis('equal')
             plt.pause(.1)
 
