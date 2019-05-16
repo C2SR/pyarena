@@ -56,28 +56,14 @@ class GPRegression(GaussianProcess):
 
     """
     trainModelIterative(inpTrain, outTrain)
-    The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data iteratively.
-    The input and output training data is stored. Training is performed only when the trainingFlag is active
-    Training the GP model implies computation of prior mean and convariance distribution over the regressor function.
+    TODO Implement
 
     Necessary function arguments:
     inpTrain - (numDim, 1) numpy array
     outTrain - 1 float
-    trainingFlag - bool. 0: do not train (only store new data). 1: store and train GP
-    """
-    def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
-        self.numTrain = len(self.outTrain) + 1
-        print(self.numTrain)
-        # Input training data
-        if (self.inpTrain!=[]):
-            self.inpTrain=self.inpTrain.T
-        self.inpTrain = np.append(self.inpTrain, inpTrain).reshape(self.numTrain,2).T
-        # Output training data
-        self.outTrain =  np.append(self.outTrain, outTrain)
-        
-        if(trainingFlag):
-            self.trainGP(self.inpTrain, self.outTrain)
-        return
+     """
+    def trainGPIterative(self, inpTrain, outTrain):
+        pass
 
     """
     Evaluate GP to obtain mean and value at a testing point
@@ -99,3 +85,28 @@ class GPRegression(GaussianProcess):
         var_hat = Ktete - Ktrte.T @ np.linalg.inv(Ktrtr + self.noiseCov*np.eye(self.numTrain)) @ Ktrte
 
         return mu_hat, var_hat
+
+    """
+    Evaluate GP on a grid
+    xmin is (2,1) numpy array
+    xmax is (2,1) numpy array
+    gridSize is (2,1) numpy array or scalar    
+    """
+    def predict_grid_value(self, xmin, xmax, gridSize=10):
+        # Plotting sensorEnv ground truth
+        if np.array(gridSize).size == 1:
+            gridSize = np.ones(2)*gridSize
+            
+        x0 = np.linspace(xmin[0], xmax[0], gridSize[0])
+        x1 = np.linspace(xmin[1], xmax[1], gridSize[1])
+        X0, X1 = np.meshgrid(x0,x1)
+        xTest = np.stack((X0.reshape(X0.shape[0]*X0.shape[1]), \
+                            X1.reshape(X1.shape[0]*X1.shape[1]) ))
+           
+        numPts = int(gridSize[0]*gridSize[1])
+        ypred = np.zeros(numPts)
+        var_pred = np.zeros(numPts)
+        for index in range(0,numPts):
+            ypred[index], var_pred[index] = self.predict_value(xTest[:,index])
+
+        return X0, X1, ypred, var_pred          

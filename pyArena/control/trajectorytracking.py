@@ -55,34 +55,36 @@ class TrajectoryTrackingWithGP(TrajectoryTracking):
         self.mGP = GP.GPRegression(**kwargsGP)
 
         self.counter = 0
+        self.inpTrain=[]
+        self.outTrain=[]
 
     def computeInput(self, t, x, *args):
-        if (self.counter%5 != 0):
-            self.mGP.trainGPIterative( x[0:2], args[0], False)                
-        else:
-            self.mGP.trainGPIterative( x[0:2], args[0], True)            
-            # Plotting sensorEnv ground truth
-            num = 20
-            
-            xmin = [-5,-5]
-            xmax = [5,5]
-            x0 = np.linspace(xmin[0], xmax[0], num)
-            x1 = np.linspace(xmin[1], xmax[1], num)
-            X0, X1 = np.meshgrid(x0,x1)
-            xTest = np.stack((X0.reshape(X0.shape[0]*X0.shape[1]), \
-                        X1.reshape(X1.shape[0]*X1.shape[1]) ))
-           
+        # Store input training data
+        if (self.inpTrain!=[]):
+            self.inpTrain=self.inpTrain.T
+        self.inpTrain = np.append(self.inpTrain, x[0:2]).reshape(self.counter+1,2).T
 
-            ypred = np.zeros(num**2)
-            var_pred = np.zeros(num**2)
-            for index in range(0,num**2):
-                ypred[index], var_pred[index] = self.mGP.predict_value(xTest[:,index])
-            
-            h1 = plt.figure(1)
-            ax3 = plt.subplot(2,2,3)  
-            p = ax3.pcolor(X0, X1, ypred.reshape([num,num]), cmap=cm.jet, vmin=-20, vmax=20)
-            ax4 = plt.subplot(2,2,4)    
-            p = ax4.pcolor(X0, X1, var_pred.reshape([num,num]), cmap=cm.jet)
+        # Store output training data
+        self.outTrain =  np.append(self.outTrain, args[0]) 
+
+        # Train GP
+        if (self.counter%10 == 0):
+            self.mGP.trainGP(self.inpTrain, self.outTrain) 
+
+            # Plot
+            num=10
+            X0, X1, ypred, var_pred =  self.mGP.predict_grid_value(xmin= [-5,-5], xmax= [5,5], gridSize=num)
+            h = plt.figure(2)
+            plt.clf()
+            ax1 = plt.subplot(1,2,1)  
+            p = ax1.pcolor(X0, X1, ypred.reshape([num,num]), cmap=cm.jet, vmin=-20, vmax=20)
+            cb = h.colorbar(p)
+            plt.axis('equal')
+
+            ax2 = plt.subplot(1,2,2)    
+            p = ax2.pcolor(X0, X1, var_pred.reshape([num,num]), cmap=cm.jet, vmin=0, vmax=1)
+            cb = h.colorbar(p)
+            plt.axis('equal')
             plt.pause(.1)
 
         u = super(TrajectoryTrackingWithGP, self).computeInput(t,x,*args)
