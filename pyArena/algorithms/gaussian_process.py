@@ -1,6 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+import matplotlib.pyplot as plt
+from matplotlib import cm
 
 class GaussianProcess(ABC):
 
@@ -22,10 +24,6 @@ class GPRegression(GaussianProcess):
             self.noiseCov = 0.0
         else:
             self.noiseCov = kwargs['measurementNoiseCov']
-
-        # Input/output variables for iterative GP
-        self.inpTrain = []
-        self.outTrain = []
 
     """
     trainModel(inpTrain, outTrain)
@@ -93,7 +91,6 @@ class GPRegression(GaussianProcess):
     gridSize is (2,1) numpy array or scalar    
     """
     def predict_grid_value(self, xmin, xmax, gridSize=10):
-        # Plotting sensorEnv ground truth
         if np.array(gridSize).size == 1:
             gridSize = np.ones(2)*gridSize
             
@@ -110,3 +107,23 @@ class GPRegression(GaussianProcess):
             ypred[index], var_pred[index] = self.predict_value(xTest[:,index])
 
         return X0, X1, ypred, var_pred          
+
+
+    def plot_grid(self, xmin, xmax, gridSize=10):
+        if np.array(gridSize).size == 1:
+            gridSize = np.ones(2)*gridSize
+
+        X0, X1, ypred, var_pred =  self.predict_grid_value(xmin, xmax, gridSize)
+        
+        h = plt.figure("Gaussian Process")
+        plt.clf()
+        ax1 = plt.subplot(1,2,1)  
+        p = ax1.pcolor(X0, X1, ypred.reshape([X0.shape[0],X0.shape[1]]), cmap=cm.jet, vmin=-20, vmax=20)
+        cb = h.colorbar(p)
+        plt.axis('equal')
+
+        ax2 = plt.subplot(1,2,2)    
+        p = ax2.pcolor(X0, X1, var_pred.reshape([X0.shape[0],X0.shape[1]]), cmap=cm.jet, vmin=0, vmax=1)
+        cb = h.colorbar(p)
+        plt.axis('equal')
+        plt.pause(.1)
