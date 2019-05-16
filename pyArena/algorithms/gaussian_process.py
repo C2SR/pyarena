@@ -66,12 +66,12 @@ class GPRegression(GaussianProcess):
     """
     def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
         self.numTrain = len(self.yTrain) + 1
-
-        self.yTrain =  np.append(self.yTrain, outTrain)
-
+        # Input training data
         self.xTrain = np.append(self.xTrain, inpTrain)
         self.xTrain = self.xTrain.reshape([self.numTrain, 2])
-   
+        # Output training data
+        self.yTrain =  np.append(self.yTrain, outTrain)
+        
         if(trainingFlag):
             self.trainGP(self.xTrain.T, self.yTrain)
         return
