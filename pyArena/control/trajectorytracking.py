@@ -1,6 +1,9 @@
 # TODOC
-import numpy as np
 from ..core import controller
+from ..algorithms import gaussian_process as GP
+
+import numpy as np
+
 
 ## Create a path following controller class
 class TrajectoryTracking(controller.StaticController):
@@ -19,7 +22,7 @@ class TrajectoryTracking(controller.StaticController):
 
         self.invDelta = np.linalg.pinv(np.array([[1.0, -self.eps[1]], [0.0, self.eps[0]]]))
 
-    def computeInput(self, t, x):
+    def computeInput(self, t, x, *args):
 
         p = x[0:2]
 
@@ -38,3 +41,44 @@ class TrajectoryTracking(controller.StaticController):
         u = self.invDelta@(-self.K@e + u_ff)
 
         return u
+
+
+class TrajectoryTrackingWithGP(TrajectoryTracking):
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+
+        kwargsGP = kwargs['GaussianProcess']
+
+        self.mGP = GP.GPRegression(**kwargsGP)
+
+        self.counter = 0
+        self.inpTrain=[]
+        self.outTrain=[]
+
+    def computeInput(self, t, x, *args):
+        # Store input/output training data
+        self.inpTrain = np.append(self.inpTrain, x[0:2]).reshape(self.counter+1,2)
+        self.outTrain =  np.append(self.outTrain, args[0]) 
+
+        # Train GP
+        if (self.counter%10 == 0):
+            self.mGP.trainGP(self.inpTrain.T, self.outTrain) 
+            self.mGP.plot_grid(xmin= [-5,-5], xmax= [5,5], gridSize=10)
+
+        u = super(TrajectoryTrackingWithGP, self).computeInput(t,x,*args)
+
+        self.counter += 1
+
+        return u
+
+
+
+
+
+
+
+
+
+   

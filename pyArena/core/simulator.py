@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.integrate import solve_ivp as ode45
 from . import logger
+from . import utils
 
 class pyArena:
     ## TODO:  Do I need *args?
@@ -24,20 +25,32 @@ class pyArena:
             self.dt = 0.1
             print('Set default sampling time of {} seconds'.format(0.1))
 
-        # Create an attribute for data logging
+        # Create a list of log objects
+        self.logObjList = list()
+
+        self.logObjList.append(logger.StateVectorLog(**{'nx': self.system.nx}))
+
+        self.logObjList.append(logger.InputVectorLog(**{'nu': self.system.nu}))
+
+        self.logObjList.append(logger.TimeLog())
 
         if self.system.isOutputEquation:
-            kwargsLog = {'nx': self.system.nx, 'nu': self.system.nu, 'ny': self.system.ny}
+            pass # TODO: Must implement
 
-        kwargsLog = {'nx': self.system.nx, 'nu': self.system.nu}
+        # TODO: Potential non-sense IF statement - consider moving to loglist section
+        if self.system.sensor is not None:
 
-        self.sysLog  = logger.pyLog(**kwargsLog)
-        
+            tempKwargsLog = {'name': self.system.sensor.name, \
+            'size': self.system.sensor.numMeasurements,\
+            'logFunction': lambda t, x, u, *args: self.system.sensor.measurement}
+
+            self.logObjList.append(logger.InlineVectorLog(**tempKwargsLog))
+
         if 'loglist' in kwargs:
             # code for additional logs
             pass
-        else:
-            self.sysLog = logger.pyLog(**kwargsLog)
+
+        self.sysLog = utils.Structure()
 
     ## END of __init__()
 
@@ -51,9 +64,15 @@ class pyArena:
 
             time = index*self.dt
 
-            uSys = self.system.controller.computeInput(time, xSys)
+            if self.system.sensor is None:
+                measurements = list()
+            else:
+                measurements = [self.system.sensor.sense(time, xSys)]
 
-            self.sysLog.updateLog(time, xSys, uSys)
+            uSys = self.system.controller.computeInput(time, xSys, *measurements)
+
+            for index, logObj in enumerate(self.logObjList):
+                logObj.updateLog(time, xSys, uSys)
 
             ode_fun = lambda t,x: self.system.stateEquation(t, x, uSys)
 
@@ -61,7 +80,11 @@ class pyArena:
 
             xSys = sol.y[:,-1]
 
-        self.sysLog.reshapeLog()
+        for index, logObj in enumerate(self.logObjList):
+            if logObj.size is 1:
+                setattr(self.sysLog, logObj.name, logObj.data)
+            else:
+                setattr(self.sysLog, logObj.name, logObj.data.reshape(-1, logObj.size))
 
         return self.sysLog
     ## END of run()

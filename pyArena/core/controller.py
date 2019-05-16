@@ -7,7 +7,7 @@ class StaticController(ABC):
             raise Exception("Cannot create an instance of abstract class BaseController")
 
     @abstractmethod
-    def computeInput(self,t,x):
+    def computeInput(self, t, x, *measurements):
         pass
 
 class InlineStaticController(StaticController):
@@ -22,5 +22,5 @@ class InlineStaticController(StaticController):
         self.controlLaw = kwargs['controlLaw']
     # END of __init__
 
-    def computeInput(self,t,x):
-        return self.controlLaw(t,x)
+    def computeInput(self, t, x, *measurements):
+        return self.controlLaw(t, x, *measurements)
