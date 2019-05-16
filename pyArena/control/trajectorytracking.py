@@ -3,8 +3,7 @@ from ..core import controller
 from ..algorithms import gaussian_process as GP
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
+
 
 ## Create a path following controller class
 class TrajectoryTracking(controller.StaticController):
@@ -57,37 +56,16 @@ class TrajectoryTrackingWithGP(TrajectoryTracking):
         self.counter = 0
         self.inpTrain=[]
         self.outTrain=[]
-        self.h = plt.figure("Gaussian Process")
 
     def computeInput(self, t, x, *args):
-        # Store input training data
-        if (self.inpTrain!=[]):
-            self.inpTrain=self.inpTrain.T
-        self.inpTrain = np.append(self.inpTrain, x[0:2]).reshape(self.counter+1,2).T
-
-        # Store output training data
+        # Store input/output training data
+        self.inpTrain = np.append(self.inpTrain, x[0:2]).reshape(self.counter+1,2)
         self.outTrain =  np.append(self.outTrain, args[0]) 
 
         # Train GP
         if (self.counter%10 == 0):
-            self.mGP.trainGP(self.inpTrain, self.outTrain) 
-
-            # Plot
-            num=10
-            X0, X1, ypred, var_pred =  self.mGP.predict_grid_value(xmin= [-5,-5], xmax= [5,5], gridSize=num)
-        
-            plt.figure(self.h.number )
-            plt.clf()
-            ax1 = plt.subplot(1,2,1)  
-            p = ax1.pcolor(X0, X1, ypred.reshape([num,num]), cmap=cm.jet, vmin=-20, vmax=20)
-            cb = self.h.colorbar(p)
-            plt.axis('equal')
-
-            ax2 = plt.subplot(1,2,2)    
-            p = ax2.pcolor(X0, X1, var_pred.reshape([num,num]), cmap=cm.jet, vmin=0, vmax=1)
-            cb = self.h.colorbar(p)
-            plt.axis('equal')
-            plt.pause(.1)
+            self.mGP.trainGP(self.inpTrain.T, self.outTrain) 
+            self.mGP.plot_grid(xmin= [-5,-5], xmax= [5,5], gridSize=10)
 
         u = super(TrajectoryTrackingWithGP, self).computeInput(t,x,*args)
 
