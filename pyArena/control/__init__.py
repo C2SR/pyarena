@@ -1,1 +1,1 @@
-__all__ =  ["trajectorytracking"]
+__all__ =  ["trajectorytracking","pure_pursuit_2D"]
