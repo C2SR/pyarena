@@ -86,6 +86,8 @@ class pyArena:
             else:
                 setattr(self.sysLog, logObj.name, logObj.data.reshape(-1, logObj.size))
 
+        print("pyArena.core.simulator -- Simulation ended!")
+              
         return self.sysLog
     ## END of run()
 
