@@ -1,14 +1,19 @@
 import numpy as np
 
 class Vertice:
-    def __init__(self, id):
+    def __init__(self, id, position):
         self.id = id
+        self.position = position
+        self.edge = []
+        self.cost = []
         self.children = []
-
+        
     """ Add the id of a child to the children list 
     """    
-    def add_child(self, child_id):
+    def add_child(self, child_id, edge, cost = 1):
         self.children.append(child_id)
+        self.edge.append(edge)
+        self.cost.append(cost)
 
     """ Print the vertice and its children to terminal 
     """    
@@ -29,12 +34,14 @@ class Graph:
         Y = Y.flatten()
 
         for id in range(mx * my):
-            self.vertices.append(Vertice(id))
             current = np.array([X[id], Y[id]])
-            for neighbor in neighborhood:
-                child = current + neighbor
+            self.vertices.append(Vertice(id, current))
+            for edge in neighborhood:
+                child = current + edge
                 if ((0<=child[0]<mx) and (0<=child[1]<my)) :  
-                    self.vertices[id].add_child(child[0] + child[1]*mx)
+                    self.vertices[id].add_child(child[0] + child[1]*mx,
+                                                edge,
+                                                sum(edge))
     
     """ Print the graph to terminal 
     """    
@@ -43,11 +50,5 @@ class Graph:
         for vertice in self.vertices:
             vertice.print()
 
-# Graph
-mx = 2
-my = 2
-neighborhood = np.array([[0,0],[-1,0],[0,-1],[1,0],[0,1]])
-
-graph = Graph(mx,my, neighborhood)
-graph.print()    
+   
                     
