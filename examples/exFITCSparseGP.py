@@ -53,7 +53,7 @@ def GetInducingPoints(numPoints, xmin=[-150, -150], xmax=[150, 150], mode='stati
     return way_points
 
 # Play with inducing points by changing numPoints
-numPoints = 5
+numPoints = 3
 inpInduce = GetInducingPoints(numPoints, [xmin, ymin], [xmax, ymax], mode='static')
 gp.train_offline(inpTrain, outTrain, inpInduce)
 
@@ -89,7 +89,7 @@ p = ax2.pcolor(X, Y, outPred.reshape([numPred, numPred]), cmap=cm.jet, vmin=-20,
 cb = h1.colorbar(p)
 
 ax3 = plt.subplot(2, 2, 3)
-p = ax3.pcolor(X, Y, varPred.reshape([numPred, numPred]), cmap=cm.jet, vmin=-20, vmax=20)
+p = ax3.pcolor(X, Y, varPred.reshape([numPred, numPred]), cmap=cm.jet)
 cb = h1.colorbar(p)
 
 ax4 = plt.subplot(2, 2, 4)
