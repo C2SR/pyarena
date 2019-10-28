@@ -1,60 +1,95 @@
 import numpy as np
-from abc import ABC, abstractmethod
 from ..core import utils
 
-class GaussianProcess(ABC):
+"""
+Class that implements a standard GP regression. Suitable for smaller problems.
+Necessary input is the kernel function.
+"""
+class GPRegression:
 
     def __init__(self, **kwargs):
-        pass
-
-class GPRegression(GaussianProcess):
-
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
 
         if 'kernel' not in kwargs:
             raise KeyError("Must specify a kernel function!")
         else:
             self.kernel = kwargs['kernel']
 
+        if 'mean' not in kwargs:
+            self.meanFunc = lambda x: 0
+        else:
+            self.meanFunc = kwargs['mean']
+
         if 'measurementNoiseCov' not in kwargs:
             self.noiseCov = 0.0
         else:
             self.noiseCov = kwargs['measurementNoiseCov']
 
-        self.xTrain = []
-        self.yTrain = []
+        self.trainingData = utils.Structure()
+        self.priorMean = utils.Structure()
+        self.priorCovariance = utils.Structure()
 
     """
-    trainModel(inpTrain, outTrain)
+    train_offline(inpTrain, outTrain)
     The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data.
-    Training the GP model implies computation of prior mean and convariance distribution over the regressor function.
 
-    Necessary function arguments:
+    Function arguments:
     inpTrain - (numDim, numTrain) numpy array
     outTrain - (numTrain, 1) numpy array. Actually a 1D numpy array
     """
-    def trainGP(self, inpTrain, outTrain):
+    def train_offline(self, inpTrain, outTrain):
 
-        self.inpTrain = inpTrain.copy() # Please verify what happens without this copy()
+        self.trainingData.inputs = inpTrain.copy()
+        self.trainingData.outputs = outTrain.copy()
+        self.trainingData.length = len(inpTrain)
 
-        self.outTrain = outTrain.copy()
+        # Step 1: Construct prior mean and covariances
 
-        self.numTrain = len(outTrain)
+        numTrain = len(inpTrain)
 
-        # Compute the prior GP covariance matrix
+        # Prior Mean initialization
+        m_m = np.zeros([numTrain, 1])
 
-        Ktrtr = np.zeros([self.numTrain,self.numTrain])
+        # Prior Covariance initialization
+        K_mm = np.zeros([numTrain, numTrain])
 
-        for row in range(0,self.numTrain):
-            for column in range(row,self.numTrain):
-                Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(inpTrain[:,row],inpTrain[:,column])
+        for train_index in range(0, numTrain):
+            m_m[train_index] = self.meanFunc(inpTrain[train_index])
+            K_mm[train_index, :] = self.kernel(inpTrain[train_index], inpTrain)
 
-        self.priorCovariance = Ktrtr
+        self.priorMean.m_m = m_m
+        self.priorCovariance.K_mm = K_mm
+        self.priorCovariance.K_mm_inv = np.linalg.inv(K_mm + self.noiseCov * np.eye(numTrain))
 
     """
-    trainModelIterative(inpTrain, outTrain)
+    Evaluate GP to obtain mean and variance at a testing point 'at_input' which is (numInputs,numDim) numpy array
+    """
+    def predict_value(self, at_input):
+
+        # Step 1: Compute the prior mean and covariance matrices
+        numTest = len(at_input)
+        numTrain = self.trainingData.length
+
+        # Mean
+        m_star = self.meanFunc(at_input)
+        m_m = self.priorMean.m_m
+
+        # Covariances
+        K_star_m = np.zeros([numTest,numTrain])
+        for inp_index in range(0,numTest):
+            K_star_m[inp_index,:] = self.kernel(at_input[inp_index], self.trainingData.inputs)
+
+        K_mm_inv = self.priorCovariance.K_mm_inv
+        K_star_star = np.diag(self.kernel(at_input, at_input))
+
+        # Step 2: Predict - get posterior mean and covariance
+
+        mu_star = m_star + K_star_m @ K_mm_inv @ (self.trainingData.outputs - m_m)
+        Sigma_star_star = K_star_star - K_star_m @ K_mm_inv @ K_star_m.T
+
+        return mu_star, Sigma_star_star
+
+    """
+    trainModelIterative(inpTrain, outTrain) 
     The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data iteratively.
     The input and output training data is stored. Training is performed only when the trainingFlag is active
     Training the GP model implies computation of prior mean and convariance distribution over the regressor function.
@@ -64,6 +99,7 @@ class GPRegression(GaussianProcess):
     outTrain - 1 float
     trainingFlag - bool. 0 - do not train (only store new data). 1 - store and train
     """
+    #TODO: Consider removal - might not be useful!
     def trainGPIterative(self, inpTrain, outTrain, trainingFlag):
         self.numTrain = len(self.yTrain) + 1
 
@@ -85,26 +121,6 @@ class GPRegression(GaussianProcess):
                 Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(self.inpTrain[:,row],self.inpTrain[:,column])
         self.priorCovariance = Ktrtr
 
-    """
-    Evaluate GP to obtain mean and value at a testing point
-    inpTest is (numDim,1) numpy array
-    """
-    def predict_value(self, inpTest):
-
-        Ktrte = np.zeros([self.numTrain,1])
-
-        for index in range(0,self.numTrain):
-            Ktrte[index] = self.kernel(self.inpTrain[:,index], inpTest)
-
-        Ktrtr = self.priorCovariance
-
-        Ktete = self.kernel(inpTest, inpTest)
-
-        mu_hat = Ktrte.T @ np.linalg.inv(Ktrtr + self.noiseCov*np.eye(self.numTrain))  @ self.outTrain
-
-        var_hat = Ktete - Ktrte.T @ np.linalg.inv(Ktrtr + self.noiseCov*np.eye(self.numTrain)) @ Ktrte
-
-        return mu_hat, var_hat
 
 """
 FITCSparseGP - Fully Independent Training Conditional Sparse GP Regression
