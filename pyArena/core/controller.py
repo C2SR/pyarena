@@ -10,7 +10,7 @@ from std_msgs.msg import Float32MultiArray
 ## StaticController (abstract) class ##
 class StaticController(ABC):
     @abstractmethod
-    def computeInput(self, t, x):
+    def compute_input(self, t, x):
         pass
 
     def __init__(self, **kwargs):
@@ -25,7 +25,7 @@ class StaticController(ABC):
         if 'real_time' not in kwargs:
             raise KeyError('Must specify real_time mode (True/False) for simulation!')
         if 'dt' not in kwargs:
-            raise KeyError('No real_time mode specified for simulation!')
+            raise KeyError('Please specify the SAMPLING TIME dt!')
             
         # Retrieving parameters            
         self.x_dimension = kwargs['x_dimension']
@@ -50,7 +50,7 @@ class StaticController(ABC):
 
     def iterate(self, timer): 
         if self.has_new_state_message:
-            self.u = self.computeInput(self.t, self.x)
+            self.u = self.compute_input(self.t, self.x)
             self.has_new_state_message = False
 
         # Assemble and send message
