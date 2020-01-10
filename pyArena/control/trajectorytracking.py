@@ -30,11 +30,14 @@ class TrajectoryTracking2D(controller.StaticController):
         # Plot configuration
         if (self.draw_plot):
             self.vehicle_contour= scale * np.array([[-1,2,-1,-1],[-1,0,1,-1]])
-            self.is_plot_ready = False 
             plt.axis(axis)
             plt.ion()
             plt.show()
         
+        # Flags
+        self.is_plot_ready = False 
+
+        # Initializing parent class
         kwargsController = {'x_dimension': 3, 'u_dimension': 2}
         kwargs.update(kwargsController)    
         
@@ -50,19 +53,24 @@ class TrajectoryTracking2D(controller.StaticController):
     """
     Trajectory tracking algorithm
     """
-    def computeInput(self, t, x):
-        p = x[0:2]
-        theta = x[2]
+    def compute_input(self, t, x):
+        # Current pose of the vehicle
+        pos = x[0:2]
+        heading = x[2]
+        Rot = np.array([[np.cos(heading), -np.sin(heading)], [np.sin(heading), np.cos(heading)]])
 
-        pd = self.funpd(t)
-        pdDot = self.funpdDot(t)
-        R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
-        e =  (R.T)@(p - pd) + self.eps
-        u_ff = (R.T)@pdDot
+        # Trajectory
+        pos_des = self.funpd(t)
+        pos_des_dot = self.funpdDot(t)
+        
+        # Control law
+        e =  (Rot.T)@(pos - pos_des) + self.eps
+        u_ff = (Rot.T)@pos_des_dot
         u = self.invDelta@(-self.K@e + u_ff)
 
+        # Call plot if requested by user
         if self.draw_plot:
-            self.plot(pd, p, R)
+            self.plot(pos_des, pos, Rot)
         
         return u
 
