@@ -1,61 +1,107 @@
+from ..core import controller
+
 import numpy as np
+import matplotlib.pyplot as plt
 
-class LOSUnicycle:
-
+"""
+Waypoint control for 2D vehicles
+"""
+class LOSUnicycle(controller.StaticController):
     def __init__(self, **kwargs):
+        # Retrieving parameters
+        self.draw_plot = kwargs['plot'] if 'plot' in kwargs else True
+        scale = kwargs['scale'] if 'scale' in kwargs else 1.0
+        axis = kwargs['axis'] if 'axis' in kwargs else np.array([-50,50,-50,50])        
+       
+        # Plot configuration
+        if (self.draw_plot):
+            self.vehicle_contour= scale * np.array([[-1,2,-1,-1],[-1,0,1,-1]])
+            plt.axis(axis)
+            plt.ion()
+            plt.show()
 
-        if 'wayPoint' in kwargs:
-            self.way_point = kwargs['wayPoint']
-        else:
-            self.way_point = None
+        # Flags
+        self.has_waypoint = False    
+        self.is_plot_ready = False
 
-        if 'lookahead' in kwargs:
-            self.look_ahead = kwargs['lookahead']
-        else:
-            self.look_ahead = 5
+        # Initializing parent class
+        kwargsController = {'x_dimension': 3, 'u_dimension': 2}
+        kwargs.update(kwargsController)
+        super().__init__(**kwargs)
 
-        self.speed = kwargs['speed']
+    """
+    Set next waypoint
+    """
+    def set_waypoint(self, waypoint, speed, lookahead=5.):
+        self.wp_final = waypoint
+        self.speed = speed
+        self.look_ahead = lookahead
 
-        self.ref = None
+        self.wp_init = None
+        self.has_reached_waypoint = False
+        self.has_waypoint = True
 
-        self.isWayPointReached = False
+    """
+    Guidance algorithm
+    """
+    def compute_input(self, t, x):
+        # In case of no waypoiny, send zero velocity commands 
+        if not self.has_waypoint:
+            return np.array([0.,0.])
 
-    def setWayPoint(self, way_point):
+        # Set the initial robot position as initial waypoiny
+        if self.wp_init is None:
+            self.wp_init = np.array(x[0:2])
+            path = (self.wp_final - self.wp_init).reshape(2,1)
+            self.proj_operator = path @ path.T / (path.T@path)
 
-        self.way_point = way_point
+        # Current pose of the vehicle
+        pos = np.array(x[0:2])
+        heading = np.array(x[2])
+        Rot = np.array([[np.cos(heading), -np.sin(heading)], [np.sin(heading), np.cos(heading)]])
 
-        self.ref = None
-
-        self.isWayPointReached = False
-
-    def run(self, t, x, *measurements):
-
-        if self.ref is None:
-            # Set the initial robot position as reference position
-            self.ref = x[0:2]
-
-        position = x[0:2]
-
-        heading = x[2]
-
-        los_angle = np.arctan2(self.way_point[1] - self.ref[1], self.way_point[0] - self.ref[0])
-
+        # Line of sight (LoS) algorithm
+        path_ref = self.proj_operator @ (pos - self.wp_init).reshape(2,1) + self.wp_init.reshape(2,1)
+        los_angle = np.arctan2(self.wp_final[1] - self.wp_init[1], self.wp_final[0] - self.wp_init[0])
         Rot_los = np.array([[np.cos(los_angle), -np.sin(los_angle)],[np.sin(los_angle), np.cos(los_angle)]])
+   
+        pos_ref = Rot_los.T@(pos - self.wp_init)
+        heading_desired = - np.arctan(pos_ref[1]/self.look_ahead) + los_angle
 
-        # Compute the desired heading for the vehicle
-
-        wp_ref = Rot_los.T@(self.way_point - self.ref)
-
-        position_ref = Rot_los.T@(position - self.ref)
-
-        heading_desired = - np.arctan(position_ref[1]/self.look_ahead) + los_angle
-
-        if (np.sqrt((self.way_point - position)@(self.way_point - position)) < 1):
-            v = 0
-            omega = 0
-            self.isWayPointReached = True
+        if (np.sqrt((self.wp_final - pos)@(self.wp_final - pos)) < 1):
+            v_lin = 0
+            w_ang = 0
+            self.has_reached_waypoint = True
         else:
-            v = self.speed
-            omega = -0.6*(heading - heading_desired)
+            v_lin = self.speed
+            w_ang = -0.6*(heading - heading_desired)
+            
+        self.plot( path_ref, pos, Rot)
+        return np.array([v_lin, w_ang])
 
-        return np.array([v,omega])
+    """
+    Plot routine for online vizualization
+    """
+    def plot(self, pd, p, R):
+        if (self.is_plot_ready == False):
+            # Drawing first frame
+            current_vehicle_contour = R@self.vehicle_contour + p[0:2].reshape(2,1)
+            self.traj_line, self.state_line = plt.plot(pd[0], pd[1],'--k', p[0], p[1], '-b')
+            self.vehicle_marker = plt.plot(current_vehicle_contour[0], current_vehicle_contour[1], color='g')[0]
+            plt.plot(self.wp_final[0], self.wp_final[1],'xr',label='WP')
+            self.traj_line.set_label("Reference path")
+            self.state_line.set_label("Real ")
+            plt.legend()
+            plt.grid()
+            # Update flag to not re-initialize plot
+            self.is_plot_ready = True
+        else:
+            current_vehicle_contour = R@self.vehicle_contour + p[0:2].reshape(2,1)
+            self.traj_line.set_xdata(np.append(self.traj_line._x, pd[0]))
+            self.traj_line.set_ydata(np.append(self.traj_line._y, pd[1]))
+            self.state_line.set_ydata(np.append(self.state_line._y, p[1]))  
+            self.state_line.set_xdata(np.append(self.state_line._x, p[0]))
+            self.vehicle_marker.set_xdata(current_vehicle_contour[0])
+            self.vehicle_marker.set_ydata(current_vehicle_contour[1])                
+            plt.draw()
+            plt.pause(0.0001)
