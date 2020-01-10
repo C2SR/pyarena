@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # # Trajectory tracking control for unicyle robot
 # TODO: Document here
 
@@ -14,12 +12,9 @@ import numpy as np
 
 import rospy
 
-# Simulation parameters
-dt = 0.05  # sampling time
-
 # Vehicle parameters
 x_init = np.array([10.0, 0.0, np.pi/2])
-kwargsSystem = {'initialCondition': x_init, 'dt': .1, 'real_time': True}
+kwargsSystem = {'initialCondition': x_init, 'dt': .01, 'real_time': True}
 vehicle = Unicycle(**kwargsSystem)
 
 ## Trajectory tracking parameters

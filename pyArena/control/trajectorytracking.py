@@ -55,15 +55,15 @@ class TrajectoryTracking2D(controller.StaticController):
     """
     def compute_input(self, t, x):
         # Current pose of the vehicle
-        pos = x[0:2]
-        heading = x[2]
+        pos = np.array(x[0:2])
+        heading = np.array(x[2])
         Rot = np.array([[np.cos(heading), -np.sin(heading)], [np.sin(heading), np.cos(heading)]])
 
         # Trajectory
         pos_des = self.funpd(t)
         pos_des_dot = self.funpdDot(t)
         
-        # Control law
+        # Control law (u = [v_lin, w_ang])
         e =  (Rot.T)@(pos - pos_des) + self.eps
         u_ff = (Rot.T)@pos_des_dot
         u = self.invDelta@(-self.K@e + u_ff)
