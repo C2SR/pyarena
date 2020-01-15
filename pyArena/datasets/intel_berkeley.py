@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import seaborn as sns
-import sys
 import matplotlib.pyplot as plt
 
 # Careful about disabling the warning, may not be a problem in this specific case
@@ -13,19 +12,19 @@ class IntelBerkeley:
     def __init__(self, **kwargs):
 
         if 'path' in kwargs:
-            path = kwargs['location']
+            self.path = kwargs['location']
         else:
-            path = '/home/romulo/Documents/dataset'
+            self.path = '/home/romulo/Documents/dataset'
 
         if 'dt' in kwargs:
             self.dt = kwargs['dt']
         else:
-            self.dt = 1.0
+            self.dt = 60
 
         if 'T_sim' in kwargs:
             self.T_sim = kwargs['T_sim']
         else:
-            self.T_sim = 1000  # seconds
+            self.T_sim =  self.dt   # seconds
 
         if 'noise_covariance' in kwargs:
             self.noise_cov = kwargs['noise_covariance']
@@ -35,11 +34,11 @@ class IntelBerkeley:
         if 'grid_resolution' in kwargs:
             self.grid_resolution = kwargs['grid_resolution']
         else:
-            self.grid_resolution = 1
+            self.grid_resolution = 1.0
 
         # Path to sensor data and location
-        sensor_data_path = path + '/IntelBerkeley.txt'
-        sensor_position_path = path + '/mote_locs.txt'
+        sensor_data_path = self.path + '/IntelBerkeleyCropped.txt'
+        sensor_position_path = self.path + '/mote_locs_cropped.txt'
         
         # Retrieving labeled data
         column_names = ['Date', 'Time', 'Epoch', 'ID', 'Temperature', 'Humidity', 'Light', 'Voltage']
@@ -47,18 +46,18 @@ class IntelBerkeley:
         self.sensor_position_data = pd.read_table(sensor_position_path, sep=' ', names=['ID', 'x', 'y'])
 
         # Sensor location limits
-        self.x_max = self.sensor_position_data['x'].max()
-        self.y_max = self.sensor_position_data['y'].max()
-        self.x_min = self.sensor_position_data['x'].min()
-        self.y_min = self.sensor_position_data['y'].min()
+        self.x_max = self.grid_resolution * np.ceil(self.sensor_position_data['x'].max() / self.grid_resolution)
+        self.y_max = self.grid_resolution * np.ceil(self.sensor_position_data['y'].max() / self.grid_resolution)
+        self.x_min = self.grid_resolution * np.floor(self.sensor_position_data['x'].min() / self.grid_resolution)
+        self.y_min = self.grid_resolution * np.floor(self.sensor_position_data['y'].min() / self.grid_resolution)
 
         # Required for spatial interpolation
         self.base_position = self.sensor_position_data.loc[:, 'x':'y'].to_numpy()
 
         # Resolution settings to get full ground truth data
-        xRes = (self.x_max - self.x_min) / self.grid_resolution
-        yRes = (self.y_max - self.y_min) / self.grid_resolution
-        gridX, gridY = np.mgrid[self.x_min:self.x_max:xRes * 1j, self.y_min:self.y_max:yRes * 1j]
+        num_x_cells = (self.x_max - self.x_min) / self.grid_resolution + 1 
+        num_y_cells = (self.y_max - self.y_min) / self.grid_resolution + 1
+        gridX, gridY = np.mgrid[self.x_min:self.x_max: num_x_cells*1j, self.y_min:self.y_max: num_y_cells*1j]
 
         X = gridX.reshape(gridX.shape[0] * gridX.shape[1])
         Y = gridY.reshape(gridY.shape[0] * gridY.shape[1])
@@ -113,7 +112,7 @@ class IntelBerkeley:
 
             self.sensorData[sensor_index] = self.sensorData[sensor_index] \
                 .loc[self.sensorData[sensor_index].index < self.end_time]
-
+            # Filling missing data [why?]
             self.sensorData[sensor_index] = self.sensorData[sensor_index].fillna(value=0.0)
 
         print('Done!!')
@@ -180,8 +179,8 @@ class IntelBerkeley:
 
         snapShot = pd.DataFrame(data=groundTruth, \
                                 columns=['x', 'y', 'Temperature', 'Humidity', 'Light', 'Voltage'])
-
-        print(self.base_position)
+        print(snapShot)
+        snapShot.to_pickle('~/teste.pkl')
         return snapShot
 
     def plot_full_ground_truth(self, t, sensor_type='Temperature'):
@@ -207,4 +206,4 @@ class IntelBerkeley:
 
 if __name__ == "__main__":
     dataset = IntelBerkeley()
-    dataset.plot_full_ground_truth(0, 'Temperature')
+    dataset.plot_full_ground_truth(0, 'Temperature')     
