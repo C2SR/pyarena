@@ -34,7 +34,7 @@ class IntelBerkeley:
         if 'grid_resolution' in kwargs:
             self.grid_resolution = kwargs['grid_resolution']
         else:
-            self.grid_resolution = 1.0
+            self.grid_resolution = 0.5
 
         # Path to sensor data and location
         sensor_data_path = self.path + '/IntelBerkeleyCropped.txt'
@@ -69,12 +69,12 @@ class IntelBerkeley:
         onedaydata = full_sensor_data[ full_sensor_data['Date'] < '2004-02-29'  ]
         onedaydata = onedaydata[ onedaydata['Date'] >= '2004-02-28'  ]
 
-        self.numSensors = len(self.sensor_position_data)
+        self.num_sensors = len(self.sensor_position_data)
 
         self.sensorData = list()
         start_time_list = list()
 
-        for sensorID_index in range(self.numSensors):
+        for sensorID_index in range(self.num_sensors):
             # Extract individual sensor data
             temp_dataframe = onedaydata[onedaydata['ID'] == (sensorID_index + 1)]
 
@@ -98,7 +98,7 @@ class IntelBerkeley:
 
         # Add the start time to all the sensor data and resample with given dt
         print('Resampling, Interpolation and Truncation!')
-        for sensor_index in range(self.numSensors):
+        for sensor_index in range(self.num_sensors):
             if sensor_index != start_time_index:
                 self.sensorData[sensor_index].loc[self.start_time] = np.nan
 
@@ -146,7 +146,7 @@ class IntelBerkeley:
     def spatial_interpolate(self, at_position, base_position, base_readings):
 
         distances = np.sum((at_position - base_position) ** 2, axis=-1) ** (1. / 2)
-        inverse_distances = np.minimum(1./distances, 1000)
+        inverse_distances = np.minimum(1./(distances+1e-10), 1000)
         normalized_inverse_distances = inverse_distances / (np.sum(inverse_distances))
 
         return normalized_inverse_distances @ base_readings
@@ -159,7 +159,7 @@ class IntelBerkeley:
 
         base_readings = list()
 
-        for sensor_index in range(self.numSensors):
+        for sensor_index in range(self.num_sensors):
             base_readings.append(self.sensorData[sensor_index] \
                                  .loc[timestamp, 'Temperature':'Voltage'].to_numpy())
 
