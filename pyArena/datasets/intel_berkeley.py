@@ -34,11 +34,11 @@ class IntelBerkeley:
         if 'grid_resolution' in kwargs:
             self.grid_resolution = kwargs['grid_resolution']
         else:
-            self.grid_resolution = 0.5
+            self.grid_resolution = .25
 
         # Path to sensor data and location
-        sensor_data_path = self.path + '/IntelBerkeleyCropped.txt'
-        sensor_position_path = self.path + '/mote_locs_cropped.txt'
+        sensor_data_path = self.path + '/IntelBerkeley.txt'
+        sensor_position_path = self.path + '/mote_locs.txt'
         
         # Retrieving labeled data
         column_names = ['Date', 'Time', 'Epoch', 'ID', 'Temperature', 'Humidity', 'Light', 'Voltage']
@@ -174,12 +174,13 @@ class IntelBerkeley:
         groundTruth = list()
 
         for index in range(0, self.num_stacked_positions):
+            print('pos:', index, ' out of ', self.num_stacked_positions)
             reading = self.get_single_ground_truth(t, self.stacked_positions[index])
             groundTruth.append(np.append(self.stacked_positions[index], reading))
 
         snapShot = pd.DataFrame(data=groundTruth, \
                                 columns=['x', 'y', 'Temperature', 'Humidity', 'Light', 'Voltage'])
-        print(snapShot)
+    
         snapShot.to_pickle('~/teste.pkl')
         return snapShot
 
