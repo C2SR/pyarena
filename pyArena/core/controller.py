@@ -19,13 +19,13 @@ class StaticController(ABC):
 
         # Checking for missing parameters
         if 'x_dimension' not in kwargs:
-            raise KeyError("Must specify number of states x_dimension")
+            raise KeyError("[Controller] Must specify number of states x_dimension")
         if 'u_dimension' not in kwargs:
-            raise KeyError("Must specify number of inputs u_dimension")
+            raise KeyError("[Controller] Must specify number of inputs u_dimension")
         if 'real_time' not in kwargs:
-            raise KeyError('Must specify real_time mode (True/False) for simulation!')
+            raise KeyError('[Controller] Must specify real_time mode (True/False) for simulation!')
         if 'dt' not in kwargs:
-            raise KeyError('Please specify the SAMPLING TIME dt!')
+            raise KeyError('[Controller] Please specify the SAMPLING TIME dt!')
             
         # Retrieving parameters            
         self.x_dimension = kwargs['x_dimension']
@@ -39,7 +39,7 @@ class StaticController(ABC):
         self.t = 0
 
         # ROS node/publisher/subscribers
-        rospy.init_node('system', anonymous=True)
+        rospy.init_node('controller', anonymous=True)
         self.input_pub = rospy.Publisher('input', Float32MultiArray, queue_size=10)
         rospy.Subscriber("state", Float32MultiArray, self.state_callback)
 
