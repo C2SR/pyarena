@@ -6,7 +6,7 @@
 ## Necessary imports
 import pyArena.control.trajectorytracking as pyacontrol
 from pyArena.vehicles.unicycle import Unicycle
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 import numpy as np
 
