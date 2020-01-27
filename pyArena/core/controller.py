@@ -13,6 +13,10 @@ class StaticController(ABC):
     def compute_input(self, t, x):
         pass
 
+    @abstractmethod
+    def update_reference(self, t, ref):
+        pass
+
     def __init__(self, **kwargs):
         if type(self) is StaticController:
             raise Exception("Cannot create an instance of abstract class BaseController")
@@ -39,9 +43,10 @@ class StaticController(ABC):
         self.t = 0
 
         # ROS node/publisher/subscribers
-        rospy.init_node('controller', anonymous=True)
+        rospy.init_node('anonymous', anonymous=True)
         self.input_pub = rospy.Publisher('input', Float32MultiArray, queue_size=10)
         rospy.Subscriber("state", Float32MultiArray, self.state_callback)
+        rospy.Subscriber("reference", Float32MultiArray, self.reference_callback)        
 
         # Message
         self.msg_input = Float32MultiArray()
@@ -66,6 +71,10 @@ class StaticController(ABC):
 
         if not self.real_time:
             self.iterate( rospy.Time.from_sec(0))
+
+    def reference_callback(self, msg):
+        ref = np.array(msg.data)
+        self.update_reference(self.t, ref)
 
     def run(self):
         if self.real_time:

@@ -9,10 +9,16 @@ Waypoint control for 2D vehicles
 class LOSUnicycle(controller.StaticController):
     def __init__(self, **kwargs):
         # Retrieving parameters
+        self.speed = kwargs['speed'] if 'speed' in kwargs else 1
+        self.look_ahead = kwargs['look_ahead'] if 'look_ahead' in kwargs else 1        
         self.draw_plot = kwargs['plot'] if 'plot' in kwargs else True
-        scale = kwargs['scale'] if 'scale' in kwargs else 1.0
-        axis = kwargs['axis'] if 'axis' in kwargs else np.array([-50,50,-50,50])        
+        scale = kwargs['scale'] if 'scale' in kwargs else 0.2
+        axis = kwargs['axis'] if 'axis' in kwargs else np.array([-5,15,-5,15])        
        
+        # Initializing variables
+        self.wp_final = None
+        self.wp_init = None
+
         # Plot configuration
         if (self.draw_plot):
             self.vehicle_contour= scale * np.array([[-1,2,-1,-1],[-1,0,1,-1]])
@@ -41,6 +47,24 @@ class LOSUnicycle(controller.StaticController):
         self.has_reached_waypoint = False
         self.has_waypoint = True
 
+    def update_reference(self, t, ref):
+        if (np.array_equal(ref, self.wp_final)):
+            return None
+
+
+        if (self.wp_final is not None):
+            self.wp_init = self.wp_final
+            self.wp_final = ref
+            path = (self.wp_final - self.wp_init).reshape(2,1)
+            self.proj_operator = path @ path.T / (path.T@path)
+        else: 
+            self.wp_final = ref
+        
+        print('Received a new waypoint:')
+        print('init', self.wp_init, 'final', self.wp_final)
+        self.has_reached_waypoint = False
+        self.has_waypoint = True        
+
     """
     Guidance algorithm
     """
@@ -68,7 +92,7 @@ class LOSUnicycle(controller.StaticController):
         pos_ref = Rot_los.T@(pos - self.wp_init)
         heading_desired = - np.arctan(pos_ref[1]/self.look_ahead) + los_angle
 
-        if (np.sqrt((self.wp_final - pos)@(self.wp_final - pos)) < 1):
+        if (np.sqrt((self.wp_final - pos)@(self.wp_final - pos)) < .1):
             v_lin = 0
             w_ang = 0
             self.has_reached_waypoint = True
