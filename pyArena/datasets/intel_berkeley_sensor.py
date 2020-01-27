@@ -17,7 +17,7 @@ class IntelBerkeleySensor:
         self.dt = 1
 
         # ROS node/publisher/subscribers
-        rospy.init_node('sensor', anonymous=True)
+        rospy.init_node('anonymous', anonymous=True)
         self.sensor_pub = rospy.Publisher('sensor_data', Float32MultiArray, queue_size=10)
         rospy.Subscriber("world", PointCloud2, self.world_callback)        
         rospy.Subscriber("state", Float32MultiArray, self.state_callback)
@@ -32,12 +32,12 @@ class IntelBerkeleySensor:
 
     def world_callback(self, msg):
         pt_cloud_data = np.frombuffer(msg.data)
-        self.x = np.unique(pt_cloud_data[0::3]) 
-        self.y = np.unique(pt_cloud_data[1::3])        
-        data = pt_cloud_data[2::3].reshape(len(self.x), len(self.y))
+        self.x_data = np.unique(pt_cloud_data[0::3]) 
+        self.y_data = np.unique(pt_cloud_data[1::3])        
+        data = pt_cloud_data[2::3].reshape(len(self.x_data), len(self.y_data))
 
         # Create interpolating function [It took about 3 ms for a grid with .25 m cell resolution]
-        self.get_measurement = interpolate.interp2d(self.x, self.y, data.T, kind='linear')
+        self.get_measurement = interpolate.interp2d(self.x_data, self.y_data, data.T, kind='linear')
         self.has_world_message = True
 
         # @TODO This is a standard way to read the point cloud. Perhaps should investigate more.
@@ -47,13 +47,16 @@ class IntelBerkeleySensor:
         #    print(" x : %f  y: %f  temp: %f" %(p[0],p[1],p[2]) )
 
     def state_callback(self,msg):
+        x = np.zeros(2)
         for i in range(0, 2):
-            self.x[i] = msg.data[i+1]
+            x[i] = msg.data[i+1]
+        self.x = x
         self.has_state_message = True
 
     def publish_sensor_data(self, timer):
         if self.has_state_message and self.has_world_message:
-            measurement = self.get_measurement(self.x[0],self.x[1])
+            x = self.x
+            measurement = self.get_measurement(x[0],x[1])
             self.msg_measurement.data = np.array(measurement)
             self.sensor_pub.publish(self.msg_measurement)
         else:
