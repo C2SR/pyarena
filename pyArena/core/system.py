@@ -51,7 +51,7 @@ class DynamicSystem(ABC):
         self.t = 0
 
         # ROS node/publisher/subscribers
-        rospy.init_node('system', anonymous=True)
+        rospy.init_node('anonymous', anonymous=True)
         self.state_pub = rospy.Publisher('state', Float32MultiArray, queue_size=10)
         rospy.Subscriber("input", Float32MultiArray, self.input_callback)
 

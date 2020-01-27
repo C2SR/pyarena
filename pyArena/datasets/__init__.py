@@ -1,1 +1,1 @@
-all = ["intel_berkeley"]
+all = ["intel_berkeley_world", "intel_berkeley_sensor"]

@@ -19,7 +19,7 @@ class IntelBerkeleyWorld:
         data = pd.read_pickle(path)
 
         # Publisher
-        rospy.init_node('world', anonymous=True)
+        rospy.init_node('anonymous', anonymous=True)
         self.pt_cloud_pub = rospy.Publisher('world', PointCloud2, queue_size=10)
 
         # Assemble single frame message
@@ -53,10 +53,9 @@ class IntelBerkeleyWorld:
         self.cloud_msg.row_step = self.cloud_msg.point_step*self.cloud_msg.width 
         self.cloud_msg.data = data.loc[:,['x','y','Temperature']].to_numpy().tostring() 
         self.cloud_msg.is_dense = True
-        
+
     
     def publish(self, timer):
-        print('Publishing')
         self.pt_cloud_pub.publish(self.cloud_msg)
 
     def run(self):
