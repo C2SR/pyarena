@@ -54,7 +54,13 @@ class IntelBerkeleyWorld:
         self.cloud_msg.data = data.loc[:,['x','y','Temperature']].to_numpy().tostring() 
         self.cloud_msg.is_dense = True
 
-    
+        # Size of the world
+        self.x_min = min(data.x)
+        self.y_min = min(data.y)
+        self.x_max = max(data.x)
+        self.y_max = max(data.y)        
+        self.size = np.array([self.x_max - self.x_min, self.y_max - self.y_min ])
+        
     def publish(self, timer):
         self.pt_cloud_pub.publish(self.cloud_msg)
 
