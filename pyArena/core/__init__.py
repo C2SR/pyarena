@@ -1,1 +1,1 @@
-__all__ = ["controller", "system", "sensors","planner"]
+__all__ = ["controller", "system", "sensors","planner","map"]

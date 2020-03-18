@@ -13,7 +13,7 @@ class LOSUnicycle(controller.StaticController):
         self.look_ahead = kwargs['look_ahead'] if 'look_ahead' in kwargs else 1        
         self.draw_plot = kwargs['plot'] if 'plot' in kwargs else True
         scale = kwargs['scale'] if 'scale' in kwargs else 0.2
-        axis = kwargs['axis'] if 'axis' in kwargs else np.array([-5,15,-5,15])        
+        axis = kwargs['axis'] if 'axis' in kwargs else np.array([-15,15,-15,15])        
        
         # Initializing variables
         self.wp_final = None
@@ -99,8 +99,9 @@ class LOSUnicycle(controller.StaticController):
         else:
             v_lin = self.speed
             w_ang = -0.6*(heading - heading_desired)
-            
-        self.plot( path_ref, pos, Rot)
+        
+        if self.draw_plot:
+            self.plot( path_ref, pos, Rot)
         return np.array([v_lin, w_ang])
 
     """

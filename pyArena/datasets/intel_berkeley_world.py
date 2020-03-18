@@ -2,6 +2,8 @@
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 import rospy
 from sensor_msgs.msg import PointCloud2
@@ -21,6 +23,13 @@ class IntelBerkeleyWorld:
         # Publisher
         rospy.init_node('anonymous', anonymous=True)
         self.pt_cloud_pub = rospy.Publisher('world', PointCloud2, queue_size=10)
+
+        # Size of the world
+        self.origin = np.array([min(data.x), min(data.y)]) 
+        self.end = np.array([max(data.x), max(data.y)]) 
+        self.width = self.end[0] - self.origin[0]
+        self.height = self.end[1] - self.origin[1]
+        shift_to_origin = np.array([self.origin[0], self.origin[1], 0.])
 
         # Assemble single frame message
         self.cloud_msg = PointCloud2()
@@ -51,16 +60,18 @@ class IntelBerkeleyWorld:
                                     data['y'].dtype.itemsize + \
                                     data['Temperature'].dtype.itemsize
         self.cloud_msg.row_step = self.cloud_msg.point_step*self.cloud_msg.width 
-        self.cloud_msg.data = data.loc[:,['x','y','Temperature']].to_numpy().tostring() 
+        self.cloud_msg.data = (data.loc[:,['x','y','Temperature']].to_numpy()-shift_to_origin).tostring() 
         self.cloud_msg.is_dense = True
-
-        # Size of the world
-        self.x_min = min(data.x)
-        self.y_min = min(data.y)
-        self.x_max = max(data.x)
-        self.y_max = max(data.y)        
-        self.size = np.array([self.x_max - self.x_min, self.y_max - self.y_min ])
+        self.origin = np.array([0,0]) 
         
+        fig, (self.ax_map, self.ax_cbar) = plt.subplots(1, 2, gridspec_kw={'width_ratios': [10, 1]})
+        piv = pd.pivot_table(data, values=['Temperature'], index=['y'], columns=['x'])
+        sns.heatmap(piv, cbar_ax=self.ax_cbar, vmin=0, vmax=22,  xticklabels=20, yticklabels=20, cmap='jet', square = True, ax=self.ax_map, cbar = True)
+        self.ax_map.invert_yaxis()
+        self.ax_map.set(xlabel='x [m]', ylabel='y [m]')
+        plt.show(0)
+        plt.pause(0.1)
+
     def publish(self, timer):
         self.pt_cloud_pub.publish(self.cloud_msg)
 

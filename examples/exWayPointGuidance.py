@@ -16,9 +16,9 @@ vehicle = Unicycle(**kwargsSystem)
 ## Waypoint controller parameters
 wp = np.array([-5.0, 0.0])
 
-kwargsGuidance = {'speed': 1, 'dt': 0.05, 'real_time': True}
+kwargsGuidance = {'speed': 1, 'dt': 0.05, 'real_time': True, }
 guidanceLaw = pyacontrol.LOSUnicycle(**kwargsGuidance)
-guidanceLaw.set_waypoint(wp, speed=2, lookahead=1.5)
+guidanceLaw.set_waypoint(wp, speed=1, lookahead=1.5)
 
 ## Create pyArena simulation object and simulate
 vehicle.run()

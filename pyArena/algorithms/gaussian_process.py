@@ -15,16 +15,17 @@ class GPRegression(GaussianProcess):
 
         super().__init__(**kwargs)
 
-        if 'kernel' not in kwargs:
-            raise KeyError("Must specify a kernel function!")
-        else:
-            self.kernel = kwargs['kernel']
+        self.noiseCov =  kwargs['measurementNoiseCov'] if 'measurementNoiseCov' in kwargs else 0.0
+        self.sigma    =  kwargs['sigma'] if 'sigma' in kwargs else 1.0
+        self.length   =  kwargs['length'] if 'length' in kwargs else 2
+     
+        self.inpTrain = None
+        self.outTrain = None        
+        self.numTrain = 0
 
-        if 'measurementNoiseCov' not in kwargs:
-            self.noiseCov = 0.0
-        else:
-            self.noiseCov = kwargs['measurementNoiseCov']
-
+    def kernel(self, distance):
+        return (self.sigma**2) * np.exp(-.5*(distance/self.length)**2)
+    
     """
     trainModel(inpTrain, outTrain)
     The function is used to train the GP model given input (inpTrain) and  output (outTrain) training data.
@@ -35,23 +36,52 @@ class GPRegression(GaussianProcess):
     outTrain - (numTrain, 1) numpy array. Actually a 1D numpy array
     """
     def trainGP(self, inpTrain, outTrain):
-
-        self.inpTrain = inpTrain.copy() # Please verify what happens without this copy()
-
-        self.outTrain = outTrain.copy()
-
-        self.numTrain = len(outTrain)
-
         # Compute the prior GP covariance matrix
+        inpTrain = inpTrain.reshape([2,1])
+        if self.inpTrain is None:
+            self.inpTrain = inpTrain.copy()
+            self.outTrain = np.array([outTrain])
+        else:
+            self.inpTrain = np.hstack([self.inpTrain, inpTrain])
+            self.outTrain = np.hstack([self.outTrain, outTrain])
+        
+        self.numTrain += 1 
 
         Ktrtr = np.zeros([self.numTrain,self.numTrain])
 
         for row in range(0,self.numTrain):
-            for column in range(row,self.numTrain):
-                Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(inpTrain[:,row],inpTrain[:,column])
+            for column in range(row, self.numTrain):
+                distance = np.linalg.norm(self.inpTrain[:,row] - self.inpTrain[:,column])
+                Ktrtr[column, row] = Ktrtr[row, column] = self.kernel(distance)
 
         self.priorCovariance = Ktrtr
+        self.priorCovariance_inv = np.linalg.inv(Ktrtr)        
 
+    def update_grid(self, height, width, resolution=1):
+ 
+        self.grid_size = np.array([height/resolution, width/resolution]).astype(int)
+        map = np.zeros(self.grid_size)
+
+        if self.numTrain > 0: 
+
+            self.grid_layers = np.zeros([self.numTrain, self.grid_size[0], self.grid_size[1]])
+
+            K_star_f = np.zeros(self.numTrain) 
+            for y in range(0, self.grid_size[0]):
+                for x in range(0, self.grid_size[1]):
+                    pt = resolution*np.array([x,y]).reshape([2,1])
+                    distance = np.linalg.norm(pt-self.inpTrain,axis=0)
+                    K_star_f = self.kernel(distance)
+                    self.grid_layers[:,y,x] = K_star_f @ self.priorCovariance_inv  
+            
+            for i in range(0, self.numTrain):
+                map += self.outTrain[i] * self.grid_layers[i]
+        
+        self.map = map
+    
+    def update_grid_map(self, pos, data):
+        self.map += (data-self.outTrain[pos])*self.grid_layers[pos]
+        self.outTrain[pos] = data
     """
     trainModelIterative(inpTrain, outTrain)
     TODO Implement

@@ -50,6 +50,10 @@ class TrajectoryTracking2D(controller.StaticController):
         self.funpd = pd
         self.funpdDot = pdDot
 
+    """Implementation of abstract class """
+    def update_reference(self, t, ref):
+        pass
+
     """
     Trajectory tracking algorithm
     """
