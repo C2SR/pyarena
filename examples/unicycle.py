@@ -1,4 +1,5 @@
 from pyarena.vehicles.unicycle import Unicycle
+import numpy as np
 
 # Vehicle parametes
 x0 = np.array([0.0,0.0,0])
