@@ -1,0 +1,21 @@
+<launch>
+    <!--Global parameters -->
+    <param name="world_frame" value="world"/>
+
+    <node pkg="pyarena_vehicle" type="vehicle_node.py" name="unicycle" ns="alpha">
+        <rosparam>  
+            base_frame: 'base_link_alpha'
+            type: 'unicycle'
+            x0: [0.,0.,0.]
+            dt: 0.01
+        </rosparam>
+    </node>    
+    <node pkg="pyarena_vehicle" type="vehicle_node.py" name="unicycle" ns="beta">
+        <rosparam>  
+            base_frame: 'base_link_beta'
+            type: 'unicycle'
+            x0: [6.,0.,0.]
+            dt: 0.01
+        </rosparam>
+    </node>    
+</launch>
