@@ -10,8 +10,8 @@ kwargsUnicycle = {'x0': x0}
 vehicle = unicycle.Unicycle(**kwargsUnicycle)
 
 # Sensor
-kwargsLandmark2D = {'max_range': 5.0}
-msensor = landmark.Landmark2D(**kwargsLandmark2D)
+kwargsLandmark = {'max_range': 5.0}
+msensor = landmark.Landmark(**kwargsLandmark)
 msensor.create_world(world_size=np.array([10,10]), nb_landmarks=10)
 
 # Loop

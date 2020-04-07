@@ -1,7 +1,7 @@
 from ..core import sensor
 import numpy as np
 
-class Landmark2D(sensor.Sensor):
+class Landmark(sensor.Sensor):
     def __init__(self,**kwargs):
         self.max_range = kwargs['max_range'] if 'max_range' in kwargs else 1.0
         self.noise = kwargs['noise'] if 'noise' in kwargs else np.zeros(2)
@@ -35,6 +35,6 @@ class Landmark2D(sensor.Sensor):
         # Detecting landmarks within range
         measurements = {}
         measurements['id'] = self.world['id'][distance < self.max_range]
-        measurements['coordinate'] = landmarks2robot[:,distance < self.max_range]         
+        measurements['z'] = landmarks2robot[:,distance < self.max_range]         
         return measurements
 
