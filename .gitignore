@@ -107,3 +107,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# ROS example compilation
+examples/ros_examples/devel
