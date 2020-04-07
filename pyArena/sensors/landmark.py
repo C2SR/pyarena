@@ -17,7 +17,7 @@ class Landmark2D(sensor.Sensor):
     def create_world(self, world_size, nb_landmarks):
         self.nb_landmarks = nb_landmarks
         self.world = {}
-        self.world_size = world_size
+        self.world['size'] = world_size
         self.world['id'] = np.linspace(0,nb_landmarks-1,nb_landmarks, dtype=int)
         self.world['coordinate'] = np.diag(world_size.flatten())@np.random.rand(2,nb_landmarks)   
 
