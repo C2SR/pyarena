@@ -32,8 +32,8 @@ class Vehicle(ABC):
     """
     def run(self, dt, u):
         # Iterating the state of the vehicle
-        ode_fun = lambda t, x: self.stateEquation(dt, self.x, u)
-        sol = ode45(ode_fun, [0, dt], self.x)
-        self.x = sol.y[:,-1]        
+        ode_fun = lambda t, x: self.stateEquation(dt, self.x.flatten(), u.flatten())
+        sol = ode45(ode_fun, [0, dt], self.x.flatten())
+        self.x = sol.y[:,-1].reshape(self.x_dimension,1)        
 
         return np.copy(self.x)
