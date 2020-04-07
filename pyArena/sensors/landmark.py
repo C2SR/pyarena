@@ -18,6 +18,7 @@ class Landmark(sensor.Sensor):
         self.nb_landmarks = nb_landmarks
         self.world = {}
         self.world['size'] = world_size
+        self.world['nb_landmarks'] = nb_landmarks
         self.world['id'] = np.linspace(0,nb_landmarks-1,nb_landmarks, dtype=int)
         self.world['coordinate'] = np.diag(world_size.flatten())@np.random.rand(2,nb_landmarks)   
 
