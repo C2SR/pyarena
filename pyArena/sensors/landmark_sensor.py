@@ -1,26 +1,20 @@
 from ..core import sensor
 import numpy as np
 
-class Landmark(sensor.Sensor):
+class LandmarkSensor(sensor.Sensor):
     def __init__(self,**kwargs):
+        # retrieving parameters
+        if 'world' not in kwargs:
+            raise KeyError("[Sensor/LandmarkSensor] Must specify a world")
+
+        self.world = kwargs['world']
         self.max_range = kwargs['max_range'] if 'max_range' in kwargs else 1.0
         self.noise = kwargs['noise'] if 'noise' in kwargs else np.zeros(2)
         
         kwargsSensor = {'x_dimension': 3}
         kwargs.update(kwargsSensor)
 
-        super().__init__(**kwargs)
-
-    """
-    Create a random world
-    """
-    def create_world(self, world_size, nb_landmarks):
-        self.nb_landmarks = nb_landmarks
-        self.world = {}
-        self.world['size'] = world_size
-        self.world['nb_landmarks'] = nb_landmarks
-        self.world['id'] = np.linspace(0,nb_landmarks-1,nb_landmarks, dtype=int)
-        self.world['coordinate'] = np.diag(world_size.flatten())@np.random.rand(2,nb_landmarks)   
+        super().__init__(**kwargs) 
 
     """
     Sampling function
@@ -31,11 +25,11 @@ class Landmark(sensor.Sensor):
         theta = x[2,0]
         R = np.array([[np.cos(theta), -np.sin(theta)],[np.sin(theta), np.cos(theta)]])
         # distance from the robot to the landmarks
-        landmarks2robot = R@(self.world['coordinate']-pos) 
+        landmarks2robot = R@(self.world.landmarks['coordinate']-pos) 
         distance = np.linalg.norm(landmarks2robot, axis=0) 
         # Detecting landmarks within range
         measurements = {}
-        measurements['id'] = self.world['id'][distance < self.max_range]
-        measurements['z'] = landmarks2robot[:,distance < self.max_range]         
+        measurements['id'] = self.world.landmarks['id'][distance < self.max_range]
+        measurements['coordinate'] = landmarks2robot[:,distance < self.max_range]         
         return measurements
 
