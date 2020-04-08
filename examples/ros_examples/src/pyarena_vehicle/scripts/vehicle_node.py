@@ -7,7 +7,7 @@ import sys
 import rospy
 from nav_msgs.msg import Odometry
 
-from pyarena.vehicles.unicycle import Unicycle
+from pyArena.vehicles.unicycle import Unicycle
 
 class VehicleNode:
     def __init__(self, node_name):
@@ -40,7 +40,7 @@ class VehicleNode:
         self.odom.child_frame_id = child_frame_id
 
         # Initializing pyArena vehicle
-        kwargsVehicle = {'x0': x0}  # parameters shared by all vehicles
+        kwargsVehicle = {'x0': np.array(x0)}  # parameters shared by all vehicles
         if vehicle_type == 'unicycle':
             self.vehicle = Unicycle(**kwargsVehicle)
         else:
@@ -57,11 +57,15 @@ class VehicleNode:
         # ROS loop
         self.spin()
 
-    def odom_publisher(self,event):
-        # Simulate vehicle
+    def iterate(self, event):
+        # Simulate vehicle        
         self.u = np.random.rand(self.vehicle.u_dimension)        
+        print(self.u)
         x = self.vehicle.run(dt=self.dt,u=self.u)
-        # state to odom 
+        # Publish
+        self.odom_publisher(x)
+
+    def odom_publisher(self,x):
         # @TODO encapsulate this in a library
         self.odom.pose.pose.position.x = x[0]
         self.odom.pose.pose.position.y = x[1]    
@@ -72,7 +76,7 @@ class VehicleNode:
         self.odom_pub.publish(self.odom)
         
     def spin(self):
-        rospy.Timer(rospy.Duration(self.dt), self.odom_publisher)       
+        rospy.Timer(rospy.Duration(self.dt), self.iterate)       
         rospy.spin()
 
 if __name__ == "__main__":
