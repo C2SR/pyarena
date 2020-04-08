@@ -36,16 +36,16 @@ class LandmarkLocalization:
     """
     def first_frame(self):  
         # First frame: world
-        self.ax.plot(self.world['coordinate'][0,:],
-                     self.world['coordinate'][1,:],
+        self.ax.plot(self.world.landmarks['coordinate'][0,:],
+                     self.world.landmarks['coordinate'][1,:],
                      marker='s',
                      markerfacecolor='None',
                      markeredgecolor='k',
                      markeredgewidth=2.0,
                      linestyle='None')
 
-        plt.ylim(0, self.world['size'][0])
-        plt.xlim(0, self.world['size'][1])
+        plt.ylim(0, self.world.width)
+        plt.xlim(0, self.world.height)
         plt.grid(True)
         plt.show(0)
         plt.pause(.01)
@@ -66,7 +66,7 @@ class LandmarkLocalization:
         self.x_est_marker.set_xdata(x_est_countour[0,:])
         self.x_est_marker.set_ydata(x_est_countour[1,:])  
         # Highlighting detected landmarks
-        self.detected_landmarks.set_xdata(self.world['coordinate'][0,measurements['id']])
-        self.detected_landmarks.set_ydata(self.world['coordinate'][1,measurements['id']])        
+        self.detected_landmarks.set_xdata(self.world.landmarks['coordinate'][0,measurements['id']])
+        self.detected_landmarks.set_ydata(self.world.landmarks['coordinate'][1,measurements['id']])        
         plt.pause(.01)
                          

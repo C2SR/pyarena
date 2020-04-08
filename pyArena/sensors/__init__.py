@@ -1,1 +1,1 @@
-__all__ = ["landmark"]
+__all__ = ["landmark_sensor"]
