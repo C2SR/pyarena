@@ -1,24 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pylab as pl
 
-class Unicycle:
-    def __init__(self, **kwargs):
-        scale = kwargs['scale'] if 'scale' in kwargs else 1.0    
-            
-        self.pattern = scale*np.array([[-1,2,-1,-1],[-1,0,1,-1]])
-
-    def update(self, x, covariance=np.zeros([3,3])):
-        # Pose of the vehicle
-        pos = x[0:2,0].reshape([2,1])
-        theta = x[2,0]
-
-        # Transforming contour
-        R = np.array([[np.cos(theta), -np.sin(theta)],
-                      [ np.sin(theta),  np.cos(theta)]])
-        vehicle = R@self.pattern + pos
-        ellipse = None
-
-        return vehicle, ellipse
+import pyArena.plots.drawings as drawings  
 
 class LandmarkLocalization:
     def __init__(self, **kwargs):
@@ -31,12 +15,11 @@ class LandmarkLocalization:
         self.confidence = kwargs['confidence'] if 'confidence' in kwargs else .95
 
         # Vehicle drawer       
-        kwargsVehicle = {'scale': 0.1}
-        self.vehicle = Unicycle(**kwargsVehicle)
-        
+        kwargsVehicle = {'vehicle': 'Unicycle','scale': 0.1}
+        self.vehicle = drawings.VehicleDrawing(**kwargsVehicle)
         
         # Artists
-        _, self.ax = plt.subplots()
+        self.fig, self.ax = plt.subplots()
         self.x_gt_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
         self.x_est_marker = self.ax.plot([],[], linestyle='--', color='g')[0]
         self.detected_landmarks = self.ax.plot([],[], marker='s',
@@ -65,15 +48,14 @@ class LandmarkLocalization:
         plt.xlim(0, self.world['size'][1])
         plt.grid(True)
         plt.show(0)
-        plt.pause(.1)
-
-
         plt.pause(.01)
         
     """
     Update the pose of the robot in the map
     """
     def update(self, x_ground_truth, x_est, measurements, covariance=np.zeros([3,3])):
+        pl.figure(self.fig.number)
+      
         # Computing vehicle countour
         x_gt_countour, _ = self.vehicle.update(x_ground_truth)
         x_est_countour, _ = self.vehicle.update(x_est)        
@@ -86,6 +68,5 @@ class LandmarkLocalization:
         # Highlighting detected landmarks
         self.detected_landmarks.set_xdata(self.world['coordinate'][0,measurements['id']])
         self.detected_landmarks.set_ydata(self.world['coordinate'][1,measurements['id']])        
-
         plt.pause(.01)
                          
