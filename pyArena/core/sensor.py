@@ -20,5 +20,5 @@ class Sensor(ABC):
     Sampling equation that samples the world
     """
     @abstractmethod
-    def sample(self, x):
+    def sample(self, dt, x):
         pass

@@ -24,7 +24,7 @@ class LandmarkSensor(sensor.Sensor):
     """
     Sampling function
     """
-    def sample(self, x):
+    def sample(self, dt, x):
         # position and orientation of the robot
         pos = x[0:2].reshape([2,1])
         theta = x[2,0]
