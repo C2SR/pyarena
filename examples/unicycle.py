@@ -18,7 +18,8 @@ kwargsWorld = {'width': 10, 'height': 10, 'nb_landmarks': 10}
 mworld = LandmarkWorld(**kwargsWorld)
 
 # Sensor
-kwargsLandmark = {'world': mworld,'max_range': 5.0}
+noise = np.array([0.,0.])
+kwargsLandmark = {'world': mworld,'max_range': 5.0, 'noise': noise}
 msensor = LandmarkSensor(**kwargsLandmark)
 
 # Plot
