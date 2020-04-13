@@ -1,6 +1,5 @@
 # Python libraries
 import numpy as np
-from scipy.integrate import solve_ivp as ode45
 from abc import ABC, abstractmethod
 
 ## Sensor (abstract) class ##
