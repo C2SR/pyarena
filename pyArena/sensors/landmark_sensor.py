@@ -30,7 +30,7 @@ class LandmarkSensor(sensor.Sensor):
         theta = x[2,0]
         R = np.array([[np.cos(theta), -np.sin(theta)],[np.sin(theta), np.cos(theta)]])
         # distance from the robot to the landmarks
-        landmarks2robot = R@(self.world.landmarks['coordinate']-pos) 
+        landmarks2robot = R.T@(self.world.landmarks['coordinate']-pos) 
         distance = np.linalg.norm(landmarks2robot, axis=0) 
         # Detecting landmarks within range
         measurements = {}

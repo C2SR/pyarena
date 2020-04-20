@@ -1,1 +1,1 @@
-__all__ = ["vehicle", "sensor"]
+__all__ = ["vehicle", "sensor","localization"]
