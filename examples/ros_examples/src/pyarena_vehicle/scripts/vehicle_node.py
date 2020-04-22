@@ -7,7 +7,7 @@ import sys
 import rospy
 from nav_msgs.msg import Odometry
 
-from pyArena.vehicles.unicycle import Unicycle
+from pyarena.vehicles.unicycle import Unicycle
 
 class VehicleNode:
     def __init__(self, node_name):
@@ -39,7 +39,7 @@ class VehicleNode:
         self.odom.header.frame_id = world_frame
         self.odom.child_frame_id = child_frame_id
 
-        # Initializing pyArena vehicle
+        # Initializing pyarena vehicle
         kwargsVehicle = {'x0': np.array(x0)}  # parameters shared by all vehicles
         if vehicle_type == 'unicycle':
             self.vehicle = Unicycle(**kwargsVehicle)

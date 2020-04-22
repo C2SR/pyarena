@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pylab as pl
 
-import pyArena.plots.drawings as drawings  
+from . import drawings  
 
-class LandmarkSLAM:
+class LandmarkLocalization:
     def __init__(self, **kwargs):
          # Checking for missing parameters
         if 'world' not in kwargs:
@@ -22,11 +22,7 @@ class LandmarkSLAM:
         self.x_gt_marker = self.ax.plot([],[], linestyle='--', color='k')[0]
         self.x_est_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
         self.ellipse_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
-        self.mapped_landmarks = self.ax.plot([],[],   marker='s',
-                                                      markerfacecolor='b',
-                                                      markeredgecolor='k',
-                                                      markeredgewidth=2.0,
-                                                      linestyle='None')[0]
+
         self.detected_landmarks = self.ax.plot([],[], marker='s',
                                                       markerfacecolor='r',
                                                       markeredgecolor='k',
@@ -73,10 +69,6 @@ class LandmarkSLAM:
         self.x_est_marker.set_ydata(x_est_countour[1,:])  
         self.ellipse_marker.set_xdata(x_est_ellipse[0,:])
         self.ellipse_marker.set_ydata(x_est_ellipse[1,:])
-
-        # Updating map plot
-        self.mapped_landmarks.set_xdata(x_est[3::2,0])
-        self.mapped_landmarks.set_ydata(x_est[4::2,0])          
 
         # Highlighting detected landmarks
         if (measurements is not None):

@@ -1,12 +1,12 @@
 import numpy as np
 import time
 
-from pyArena.vehicles.unicycle import Unicycle
-from pyArena.world.landmark_world import LandmarkWorld
-from pyArena.sensors.landmark_sensor import LandmarkSensor  
-from pyArena.sensors.velocity_sensor import VelocitySensor  
-from pyArena.plots.landmark_slam import LandmarkSLAM
-from pyArena.slam.ekf_slam_landmark import EKFSLAMLandmark
+from pyarena.vehicles.unicycle import Unicycle
+from pyarena.world.landmark_world import LandmarkWorld
+from pyarena.sensors.landmark_sensor import LandmarkSensor  
+from pyarena.sensors.velocity_sensor import VelocitySensor  
+from pyarena.plots.landmark_slam import LandmarkSLAM
+from pyarena.slam.ekf_slam_landmark import EKFSLAMLandmark
 
 # Setting seed for replication of experiment
 np.random.seed(0)
