@@ -1,1 +1,1 @@
-__all__ = ["landmark_localization"]
+__all__ = ["landmark_localization","landmark_slam"]
