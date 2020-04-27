@@ -9,19 +9,26 @@ class LandmarkSLAM:
          # Checking for missing parameters
         if 'world' not in kwargs:
             raise KeyError("[Plot/Landmark Localization] Must specify a world")
+        world = kwargs['world']
 
-        self.world = kwargs['world']
-        self.sensor = kwargs['sensor'] if 'sensor' in kwargs else None
+        # Saving parameters
+        self.world = world
 
         # Vehicle drawer       
         kwargsVehicle = {'vehicle': 'Unicycle','scale': 0.1}
         self.vehicle = drawings.VehicleDrawing(**kwargsVehicle)
+        # Covariance drawer
+        kwargsCovariance = {'nb_pts': 30}
+        self.uncertainty_ellipse =  drawings.Covariance2DDrawing(**kwargsCovariance)
         
         # Artists
         self.fig, self.ax = plt.subplots()
         self.x_gt_marker = self.ax.plot([],[], linestyle='--', color='k')[0]
         self.x_est_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
-        self.ellipse_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
+        self.ellipse_marker = []
+        for i in range(0, world.nb_landmarks+1):
+            ellipse_marker = self.ax.plot([],[], linestyle='-', color='k')[0]
+            self.ellipse_marker.append(ellipse_marker)
         self.mapped_landmarks = self.ax.plot([],[],   marker='s',
                                                       markerfacecolor='b',
                                                       markeredgecolor='k',
@@ -63,16 +70,26 @@ class LandmarkSLAM:
         pl.figure(self.fig.number)
       
         # Computing vehicle countour
-        x_gt_countour, _ = self.vehicle.update(x_ground_truth)
-        x_est_countour, x_est_ellipse = self.vehicle.update(x_est, Cov)        
+        x_gt_countour = self.vehicle.update(x_ground_truth)
+        x_est_countour = self.vehicle.update(x_est)        
        
         # Updating vehicle plot
         self.x_gt_marker.set_xdata(x_gt_countour[0,:])
         self.x_gt_marker.set_ydata(x_gt_countour[1,:])
         self.x_est_marker.set_xdata(x_est_countour[0,:])
         self.x_est_marker.set_ydata(x_est_countour[1,:])  
-        self.ellipse_marker.set_xdata(x_est_ellipse[0,:])
-        self.ellipse_marker.set_ydata(x_est_ellipse[1,:])
+        
+        # Updating vehicle uncertainty
+        x_est_ellipse = self.uncertainty_ellipse.update(Cov[0:2,0:2], x_est[0:2])
+        self.ellipse_marker[0].set_xdata(x_est_ellipse[0,:])
+        self.ellipse_marker[0].set_ydata(x_est_ellipse[1,:])
+
+        # Updating landmark uncertainty
+        for i in range(0, self.world.nb_landmarks):
+            x_est_ellipse = self.uncertainty_ellipse.update(Cov[3+2*i:3+2*i+2, 3+2*i:3+2*i+2],
+                                                            x_est[3+2*i:3+2*i+2])
+            self.ellipse_marker[i+1].set_xdata(x_est_ellipse[0,:])
+            self.ellipse_marker[i+1].set_ydata(x_est_ellipse[1,:])
 
         # Updating map plot
         self.mapped_landmarks.set_xdata(x_est[3::2,0])

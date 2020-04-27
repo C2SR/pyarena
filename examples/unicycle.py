@@ -21,20 +21,18 @@ kwargsWorld = {'width': 10, 'height': 10, 'nb_landmarks': 10}
 mworld = LandmarkWorld(**kwargsWorld)
 
 # Velocity Sensor
-noise = np.array([0.05,0.02])
-kwargsVelocitySensor = {'noise': noise}
+motion_noise = np.array([0.05,0.02])
+kwargsVelocitySensor = {'noise': motion_noise}
 mvelocity_sensor = VelocitySensor(**kwargsVelocitySensor)
 
 # Landmark Sensor
-noise = np.array([0.05,0.05])
-kwargsLandmarkSensor = {'world': mworld,'max_range': 5.0, 'noise': noise}
+measurement_noise = np.array([0.05,0.05])
+kwargsLandmarkSensor = {'world': mworld,'max_range': 5.0, 'noise': measurement_noise}
 mlandmark_sensor = LandmarkSensor(**kwargsLandmarkSensor)
 
 # State estimation
-motion_noise = np.array([0.05,0.02])
-measurement_noise = np.array([0.05,0.05])
-Sigma0 = np.diag([.5,.5,.0])
-kwargsEKF = {'map': mworld, 'Sigma0': Sigma0, 'motion_noise':motion_noise}
+Sigma0 = np.diag([.0,.0,.0])
+kwargsEKF = {'map': mworld, 'Sigma0': Sigma0, 'motion_noise': motion_noise, 'measurement_noise': measurement_noise}
 mestimator = LandmarkEKF(**kwargsEKF)
 
 # Plot

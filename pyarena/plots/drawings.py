@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 
 class VehicleDrawing:
     def __init__(self, **kwargs):
@@ -11,11 +12,8 @@ class VehicleDrawing:
         else:
             raise KeyError("[Plot/Vehicle] Unknown vehicle type. Options: vehicle='unicycle'")
 
-        # Uncertainty ellipsoid countour (95% confidence)
-        theta = np.linspace(0, 2*np.pi, 50)
-        self.ellipse_drawing = np.vstack([np.cos(theta), np.sin(theta)])
 
-    def update(self, x, Cov=np.zeros([3,3])):
+    def update(self, x):
         # Pose of the vehicle
         pos = x[0:2,0].reshape([2,1])
         theta = x[2,0]
@@ -24,9 +22,20 @@ class VehicleDrawing:
         R = np.array([[np.cos(theta), -np.sin(theta)],
                       [ np.sin(theta),  np.cos(theta)]])
         vehicle = R@self.vehicle_drawing + pos
-        ellipse = None
 
+        return vehicle
+
+class Covariance2DDrawing:
+    def __init__(self, **kwargs):
+        # Uncertainty ellipsoid countour (95% confidence)
+        nb_pts = kwargs['nb_pts'] if 'nb_pts' in kwargs else 50
+        
+        theta = np.linspace(0, 2*np.pi, nb_pts)
+        self.ellipse_drawing = np.vstack([np.cos(theta), np.sin(theta)])
+
+    def update(self, Cov, xc = np.array([0,0])):
         # Transforming ellipse contour
+        """
         eigval, eigvec  = np.linalg.eig(Cov[0:2,0:2])
         sorted_index = np.argsort(eigval)[::-1] # sorting eigenvalues' index  by descending order of the eigenvalues
         eigval, eigvec = eigval[sorted_index], eigvec[:,sorted_index]
@@ -35,6 +44,7 @@ class VehicleDrawing:
         R = np.array([[np.cos(alpha), -np.sin(alpha)],
                       [np.sin(alpha), np.cos(alpha)]])
 
-        ellipse = R@np.diag(np.sqrt(5.991*eigval))@self.ellipse_drawing + x[0:2,0].reshape(2,1)        
-
-        return vehicle, ellipse
+        ellipse = R@np.diag(np.sqrt(5.991*eigval))@self.ellipse_drawing + x[0:2,0].reshape(2,1)
+        """
+        ellipse = scipy.linalg.sqrtm(5.991*Cov[0:2,0:2])@self.ellipse_drawing + xc[0:2,0].reshape(2,1)
+        return ellipse

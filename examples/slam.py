@@ -17,24 +17,24 @@ kwargsUnicycle = {'x0': x0}
 mvehicle = Unicycle(**kwargsUnicycle)
 
 # World 
-kwargsWorld = {'width': 10, 'height': 10, 'nb_landmarks': 10}
+nb_landmarks = 50
+kwargsWorld = {'width': 10, 'height': 10, 'nb_landmarks': nb_landmarks}
 mworld = LandmarkWorld(**kwargsWorld)
-
+#mworld.landmarks['coordinate'] = np.array([[2.,1.],[4.,1.],[6,1],[8,1],
+#                                           [8.,4.],[8.,6.],[2.,4.],[2.,6.],[4,8],
+#                                           [2.,9.],[4.,9.],[6,9],[8,9]]).T
 # Velocity Sensor
-noise = np.array([0.05,0.02])
-kwargsVelocitySensor = {'noise': noise}
+motion_noise = np.array([0.05,0.02])
+kwargsVelocitySensor = {'noise': motion_noise}
 mvelocity_sensor = VelocitySensor(**kwargsVelocitySensor)
 
 # Landmark Sensor
-noise = np.array([0.05,0.05])
-kwargsLandmarkSensor = {'world': mworld,'max_range': 5.0, 'noise': noise}
-mlandmark_sensor = LandmarkSensor(**kwargsLandmarkSensor)
-
-# State estimation
-motion_noise = np.array([0.05,0.02])
 measurement_noise = np.array([0.05,0.05])
-Sigma0 = np.diag([.05,.05,.0])
-kwargsEKFSLAM = {'nb_landmarks': 10, 'Sigma0': Sigma0, 'motion_noise':motion_noise, 'measurement_noise': measurement_noise}
+kwargsLandmarkSensor = {'world': mworld,'max_range': 4.0, 'noise': measurement_noise}
+mlandmark_sensor = LandmarkSensor(**kwargsLandmarkSensor)
+# State estimation
+Sigma0 = np.diag([.0,.0,.0])
+kwargsEKFSLAM = {'nb_landmarks': nb_landmarks, 'Sigma0': Sigma0, 'motion_noise':motion_noise, 'measurement_noise': measurement_noise}
 mestimator = EKFSLAMLandmark(**kwargsEKFSLAM)
 
 # Plot
@@ -42,13 +42,14 @@ kwargsPlot = {'world': mworld}
 mplot = LandmarkSLAM(**kwargsPlot)
 
 # Loop
+state = 0
 while(1):
     # Simulate vehicle
-    u = np.random.rand(2,1) + np.array([0.0,-.4]).reshape(2,1)
+    u = np.random.rand(2,1) + np.array([0.0,-.425]).reshape(2,1)
     x = mvehicle.run(dt=0.05,u=u)
     # Simulate sensors
     odometry = mvelocity_sensor.sample(dt=.05,x=x)
-    if np.random.rand() < .1:
+    if np.random.rand() < .5:
         measurements = mlandmark_sensor.sample(dt=0,x=x)
     else:
         measurements = None       

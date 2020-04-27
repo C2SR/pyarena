@@ -43,22 +43,26 @@ class EKFSLAMLandmark(slam.SLAM):
 
         # Prediction   
         x_est = x_est + self.F@np.array([dt*u[0,0]*c,
-                                        dt*u[0,0]*s,
-                                        dt*u[1,0]]).reshape(3,1)
+                                         dt*u[0,0]*s,
+                                         dt*u[1,0]]).reshape(3,1)
         x_est[2,0] = (x_est[2,0] + np.pi) % (2 * np.pi) - np.pi 
         Sigma =  G@Sigma@G.T + V@self.R@V.T
 
         # Update
+        # Check if there are measurements available
         if measurements is not None and len(measurements['id']) > 0:
             R = np.array([[c, -s],[s, c]]) 
             dR = np.array([[-s, -c],[c, -s]])
+            # For each measurement
             for idx, id in enumerate(measurements['id']):
-                # storing measurement and map landmark in local variables
+                # Storing measurement and map landmark in local variables
                 zi = (measurements['coordinate'][:,idx]).reshape(2,1)
+                # Initializing landmark in the map 
                 if self.has_initialized_landmark[id] == False:
                     print('Initializing landmark #', id)
                     x_est[3+2*id:3+2*id+2] = x_est[0:2] + R@zi
                     self.has_initialized_landmark[id]= True
+                
                 mi = x_est[3+2*id:3+2*id+2]   
                 H = np.zeros([2,3+2*self.nb_landmarks])
                 H[:,0:3] = np.hstack([-R.T, dR.T@(mi - x_est[0:2])])

@@ -34,7 +34,6 @@ class LandmarkEKF(localization.Localization):
         # Computing matrices
         G = np.array([[1.,0.,-dt*u[0,0]*s],[0.,1.,dt*u[0,0]*c],[0.,0.,1.]])
         V = np.array([[dt*c,0.],[dt*s,0.],[0., dt]])
-
         # Prediction   
         x_est = np.array([x_est[0,0] + dt*u[0,0]*c,
                           x_est[1,0] + dt*u[0,0]*s,
