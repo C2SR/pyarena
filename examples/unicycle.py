@@ -3,10 +3,13 @@ import time
 
 from pyArena.vehicles import unicycle
 
-# Vehicle parametes
-x0 = np.array([0.0,0.0,0])
+# Setting seed for replication of experiment
+np.random.seed(0)
+
+# Vehicle 
+x0 = np.array([.0,.0,0])
 kwargsUnicycle = {'x0': x0}
-vehicle = unicycle.Unicycle(**kwargsUnicycle)
+mvehicle = Unicycle(**kwargsUnicycle)
 
 # Loop
 while(1):

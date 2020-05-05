@@ -18,8 +18,9 @@ class Vehicle(ABC):
         self.u_dimension = kwargs['u_dimension']
         
         # Initializing varibles
-        self.x = kwargs['x0'] if 'x0' in kwargs else np.zeros(self.x_dimension)
+        x = kwargs['x0'] if 'x0' in kwargs else np.zeros(self.x_dimension,1)
 
+        self.x = x.reshape(self.x_dimension,1)
     """
     State equation that defines the dynamics of the vehicle
     """

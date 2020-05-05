@@ -1,6 +1,5 @@
 # Python libraries
 import numpy as np
-from scipy.integrate import solve_ivp as ode45
 from abc import ABC, abstractmethod
 
 ## Sensor (abstract) class ##
@@ -21,5 +20,5 @@ class Sensor(ABC):
     Sampling equation that samples the world
     """
     @abstractmethod
-    def sample(self, x):
+    def sample(self, dt, x):
         pass
