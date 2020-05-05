@@ -2,7 +2,7 @@
     <!--Global parameters -->
     <param name="world_frame" value="world"/>
 
-    <node pkg="pyarena_vehicle" type="vehicle_node.py" name="unicycle">
+    <node pkg="pyarena_vehicle" type="vehicle_node.py" name="unicycle" output="screen">
         <rosparam>  
             type: 'unicycle'
             x0: [0.,0.,0.]

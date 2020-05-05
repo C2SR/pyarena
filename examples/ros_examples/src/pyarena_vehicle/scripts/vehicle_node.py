@@ -7,7 +7,7 @@ import sys
 import rospy
 from nav_msgs.msg import Odometry
 
-from pyarena.vehicles.unicycle import Unicycle
+from pyArena.vehicles.unicycle import Unicycle
 
 class VehicleNode:
     def __init__(self, node_name):
