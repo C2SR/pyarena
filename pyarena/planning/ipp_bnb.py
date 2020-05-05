@@ -7,10 +7,10 @@ class IPPBnB(planning.DiscretePlanner):
     def __init__(self,**kwargs):
          # Checking for missing parameters
         if 'world' not in kwargs:
-            raise KeyError("[Plot/GraphPlanning] Must specify a GraphWorld")
-
+            raise KeyError("[Planning/IPPBnB] Must specify a GraphWorld")
         world = kwargs['world']
-        length = 2.
+        length = kwargs['kernel_length'] if 'kernel_length' in kwargs else 1.
+        # Storing
         self.world = world
         self.num_nodes =  len(world.graph.nodes)
         self.length = length
@@ -28,15 +28,23 @@ class IPPBnB(planning.DiscretePlanner):
     """
     Motion planning default function for computing a plan
     """        
-    def run(self, start_state, goal_state, budget):
+    def run(self, x_start, x_goal, **kwargs):
+        # Parameters
+        # Checking for missing parameters
+        if 'budget' not in kwargs:
+            raise KeyError("[Planning/IPPBnB] Must specify a budget")        
+        budget = kwargs['budget']
+        path = kwargs['path'] if 'path' in kwargs else []
+        horizon = kwargs['horizon'] if 'horizon' in kwargs else np.inf
+        
         # Initialize parameters
         self.optimal_objective = 0
-        self.optimal_path = []
+        self.optimal_path = path
         # Search for the two nodes that are closest to start and goal states
-        start_node_id, _ = self.world.graph.find_closest_node(start_state)
-        goal_node_id, _ = self.world.graph.find_closest_node(goal_state)        
+        start_node_id, _ = self.world.graph.find_closest_node(x_start)
+        goal_node_id, _ = self.world.graph.find_closest_node(x_goal)        
         # IPP-BnB algorithm
-        self.ipp_bnb(start_node_id, goal_node_id, budget)
+        self.ipp_bnb(start_node_id, goal_node_id, budget, path, horizon)
 
         return self.optimal_path, self.optimal_objective  
 
@@ -45,25 +53,33 @@ class IPPBnB(planning.DiscretePlanner):
     the upper bound of the current candidate solution and expands the tree. If the path
     leads to the goal node, the it is considered a leaf.
     """
-    def ipp_bnb(self, start_node_id, goal_node_id, budget, path=[]):
+    def ipp_bnb(self, start_node_id, goal_node_id, budget, path, horizon):
         is_leaf = True
-        for edge_id in self.world.graph.nodes[start_node_id].edges:
-            # Updating candidate path and remaining budget
-            new_path = path + [edge_id]
-            new_node_id = self.world.graph.edges[edge_id].end_node_id 
-            new_budget = budget - self.world.graph.edges[edge_id].weight
-            # Check if budget allows reaching the goal
-            if self.euclidean_cost(new_node_id, goal_node_id) <= new_budget and new_node_id != goal_node_id:
-                is_leaf = False
-                # Prunning if upper-bound is lower than current optimal
-                if self.ubound(new_node_id, goal_node_id, new_budget, new_path) > self.optimal_objective:
-                    self.ipp_bnb(new_node_id, goal_node_id, new_budget, new_path)
+        new_path = path
+        if horizon > 0:
+            for edge_id in self.world.graph.nodes[start_node_id].edges:
+                # Updating candidate path and remaining budget
+                new_path = path + [edge_id]
+                new_node_id = self.world.graph.edges[edge_id].end_node_id 
+                new_budget = budget - self.world.graph.edges[edge_id].weight
+                # Check if budget allows reaching the goal
+                if self.euclidean_cost(new_node_id, goal_node_id) <= new_budget:
+                    if new_node_id != goal_node_id:
+                        is_leaf = False
+                        # Prunning if upper-bound is lower than current optimal
+                        if self.ubound(new_node_id, goal_node_id, new_budget, new_path) > self.optimal_objective:
+                            self.ipp_bnb(new_node_id, goal_node_id, new_budget, new_path, horizon-1)
+                    else:
+                        self.check_optimality(new_path)
 
-        # check if candidate path is better than current best solution
-        if is_leaf:
+        if is_leaf and horizon == 0:
+            self.check_optimality(new_path)
+
+    # check if candidate path is better than current best soluroscoretion
+    def check_optimality(self, path): 
             # Find the nodes in the candidate path and compute reward
             is_node_in_path = np.zeros(self.num_nodes, dtype='Bool')
-            for edge_id in new_path:
+            for edge_id in path:
                 edge = self.world.graph.edges[edge_id]
                 is_node_in_path[edge.init_node_id] = True
                 is_node_in_path[edge.end_node_id] = True 
@@ -71,7 +87,7 @@ class IPPBnB(planning.DiscretePlanner):
             objective = self.evaluate_objective(nodes_id)
             # Update solutinon if candidate is better than current best solution
             if (objective > self.optimal_objective):
-                self.optimal_path = new_path
+                self.optimal_path = path
                 self.optimal_objective = objective    
 
     """

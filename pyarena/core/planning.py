@@ -26,6 +26,6 @@ class DiscretePlanner(ABC):
     to reach the goal state
     """
     @abstractmethod
-    def run(self, x_start=None, x_goal=None, budget=None):
+    def run(self, x_start, x_goal, **kwargs):
         pass
 
