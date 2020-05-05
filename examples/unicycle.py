@@ -1,7 +1,7 @@
 import numpy as np
 import time
 
-from pyArena.vehicles import unicycle
+from pyarena.vehicles.unicycle import Unicycle
 
 # Setting seed for replication of experiment
 np.random.seed(0)
@@ -14,7 +14,7 @@ mvehicle = Unicycle(**kwargsUnicycle)
 # Loop
 while(1):
     u = np.random.rand(2)
-    x = vehicle.run(dt=0.1,u=u)
-    print(x)
+    x = mvehicle.run(dt=0.1,u=u)
+    print('current state:', x.T)
     time.sleep(.2)
 
