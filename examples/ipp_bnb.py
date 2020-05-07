@@ -21,8 +21,8 @@ mplanning = IPPBnB(**kwargsPlanning)
 # Planning parameters
 start = np.array([0,0]).reshape(2,1)
 goal = np.array([3,3]).reshape(2,1)
-budget = 12
-horizon = 3
+budget = 13
+horizon = 2
 moving_horizon_path = []
 i=0
 
@@ -38,7 +38,7 @@ while horizon <= budget:
         moving_horizon_path.append(optimal_path[i])
     
     # Plot
-    mplot.update(optimal_path)
+    mplot.update(optimal_path, moving_horizon_path)
     time.sleep(1)
     # Update path and budget
     start = mworld.graph.nodes[next_node_id].state.reshape(2,1)
