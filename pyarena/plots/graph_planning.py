@@ -80,4 +80,4 @@ class GraphPlanning:
         self.active_nodes.set_xdata([self.world.graph.nodes[id].state[0,0] for id in active_nodes_id])
         self.active_nodes.set_ydata([self.world.graph.nodes[id].state[1,0] for id in active_nodes_id])
 
-        plt.pause(200.0)
+        plt.pause(0.01)

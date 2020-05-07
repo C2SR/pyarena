@@ -1,11 +1,12 @@
 import numpy as np
+import time
 from pyarena.world.graph_world import GraphWorld
 from pyarena.plots.graph_planning import GraphPlanning
 from pyarena.planning.ipp_bnb import IPPBnB
 
 
 # world
-size = np.array([6,6])
+size = np.array([5,5])
 kwargsWorld = {'size': size}
 mworld = GraphWorld(**kwargsWorld)
 
@@ -20,8 +21,8 @@ mplanning = IPPBnB(**kwargsPlanning)
 # Planning parameters
 start = np.array([0,0]).reshape(2,1)
 goal = np.array([3,3]).reshape(2,1)
-budget = 6
-horizon = 6
+budget = 12
+horizon = 3
 moving_horizon_path = []
 i=0
 
@@ -38,18 +39,18 @@ while horizon <= budget:
     
     # Plot
     mplot.update(optimal_path)
-
+    time.sleep(1)
     # Update path and budget
     start = mworld.graph.nodes[next_node_id].state.reshape(2,1)
     budget -= 1
     i+=1
 
-    print('next start:', start.T)
-    print('remaing budget', budget)
-print('done!')
+    print('Next Waypoint:', start.T)
+    print('Remaing budget', budget)
+    print('--------------------')
 
 mplot.update(optimal_path)
-
+wait = input('Press a key to finish')
 
 
 
